@@ -1,0 +1,72 @@
+# Java классы скомпилированные файлы
+*.class
+
+# Лог-файлы
+*.log
+
+# Директория сгенерированных файлов
+target/
+out/
+
+# Артефакты сборки и зависимости
+build/
+*.war
+*.ear
+*.jar
+
+# Файлы настроек IDE
+## IntelliJIDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+## Tomcat
+/.externalToolBuilders/
+/lib/
+/release/
+/generated/
+
+## Eclipse
+/.metadata/
+
+## Другие
+/.vscode/
+/*.classpath
+/.project
+/bin/
+*.launch
+.settings/
+
+# Файлы систем сборок
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+pom.xml.previous
+dependency-reduced-pom.xml
+release.properties
+buildNumber.properties
+
+# Исключение артефактов Gradle
+.gradle/
+/!gradle-wrapper.jar
+
+# Исключение временных файлов
+*.tmp
+*.bak
+*.swp
+*.orig
+*~
+
+# Исключение специфичных файлов OS
+.DS_Store
+Thumbs.db
+
+# Исключение файлов, связанных с упаковкой в Docker
+docker-compose.override.yml
+
+# Исключение файлов конфигурации окружений
+.env
