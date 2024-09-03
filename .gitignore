@@ -1,72 +1,42 @@
-# Java классы скомпилированные файлы
-*.class
-
-# Лог-файлы
-*.log
-
-# Директория сгенерированных файлов
-target/
-out/
-
-# Артефакты сборки и зависимости
+.gradle
 build/
-*.war
-*.ear
-*.jar
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# Файлы настроек IDE
-## IntelliJIDEA
-.idea/
-*.iml
+### IntelliJ IDEA ###
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
 *.iws
+*.iml
 *.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
 
-## Tomcat
-/.externalToolBuilders/
-/lib/
-/release/
-/generated/
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
-## Eclipse
-/.metadata/
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
-## Другие
-/.vscode/
-/*.classpath
-/.project
-/bin/
-*.launch
-.settings/
+### VS Code ###
+.vscode/
 
-# Файлы систем сборок
-.mvn/
-!.mvn/wrapper/maven-wrapper.jar
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-pom.xml.previous
-dependency-reduced-pom.xml
-release.properties
-buildNumber.properties
-
-# Исключение артефактов Gradle
-.gradle/
-/!gradle-wrapper.jar
-
-# Исключение временных файлов
-*.tmp
-*.bak
-*.swp
-*.orig
-*~
-
-# Исключение специфичных файлов OS
+### Mac OS ###
 .DS_Store
-Thumbs.db
-
-# Исключение файлов, связанных с упаковкой в Docker
-docker-compose.override.yml
-
-# Исключение файлов конфигурации окружений
-.env
