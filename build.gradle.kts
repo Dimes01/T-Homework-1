@@ -17,6 +17,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.7")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2")
+    testImplementation("org.mockito:mockito-core:5.13.0")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

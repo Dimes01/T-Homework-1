@@ -40,7 +40,7 @@ public class Main {
         LOGGER.info("Method 'main' finished");
     }
 
-    private static City fromJSON(File file) {
+    public static City fromJSON(File file) {
         LOGGER.info("Method 'fromJSON' started");
 
         City city = null;
@@ -61,7 +61,7 @@ public class Main {
         return city;
     }
 
-    private static void toXML(File file, City city) {
+    public static void toXML(File file, City city) {
         LOGGER.info("Method 'toXML' started");
 
         if (!file.exists()) {
