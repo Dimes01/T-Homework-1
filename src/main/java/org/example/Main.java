@@ -42,7 +42,7 @@ public class Main {
 
     public static City fromJSON(File file) {
         LOGGER.info("Method 'fromJSON' started");
-
+        LOGGER.info(String.format("File object: %s", file));
         City city = null;
         if (!file.exists()) {
             LOGGER.warn(String.format("File '%s' does not exist", file.getName()));
@@ -50,7 +50,6 @@ public class Main {
             LOGGER.warn(String.format("File '%s' can not read", file.getName()));
         } else {
             try {
-                LOGGER.info(String.format("File object: %s, name: %s", file, file.getName()));
                 city = objectMapper.readValue(file, City.class);
             } catch (IOException e) {
                 LOGGER.error(String.format("The file '%s' could not be read", file.getName()));
@@ -64,7 +63,8 @@ public class Main {
 
     public static void toXML(File file, City city) {
         LOGGER.info("Method 'toXML' started");
-
+        LOGGER.info(String.format("File object: %s", file));
+        LOGGER.info(String.format("City object: %s", city));
         if (!file.exists()) {
             LOGGER.warn(String.format("File '%s' does not exist", file.getName()));
         } else if (!file.canWrite()) {
