@@ -25,8 +25,11 @@ public class Main {
                 var nameFileXml = fileName.substring(0, fileName.length() - 5) + ".xml";
                 var fileXml = new File(String.format("src/main/resources/%s", nameFileXml));
                 try {
-                    fileXml.createNewFile();
-                    LOGGER.info("The file with extension .xml is created");
+                    if (fileXml.createNewFile()) {
+                        LOGGER.info("The file with extension .xml is created");
+                    } else {
+                        LOGGER.info("The file with extension .xml already exists");
+                    }
                 } catch (IOException e) {
                     LOGGER.error("The file with extension .xml could not be created");
                     LOGGER.error(e.getMessage());
@@ -42,7 +45,7 @@ public class Main {
 
     public static City fromJSON(File file) {
         LOGGER.info("Method 'fromJSON' started");
-        LOGGER.info(String.format("File object: %s", file));
+        LOGGER.debug(String.format("File object: %s", file));
         City city = null;
         if (!file.exists()) {
             LOGGER.warn(String.format("File '%s' does not exist", file.getName()));
@@ -51,20 +54,21 @@ public class Main {
         } else {
             try {
                 city = objectMapper.readValue(file, City.class);
+                LOGGER.info(String.format("The object has read from file '%s'", file.getName()));
             } catch (IOException e) {
                 LOGGER.error(String.format("The file '%s' could not be read", file.getName()));
                 LOGGER.error(e.getMessage());
             }
         }
-        LOGGER.trace(String.format("The returned value is %s", city));
+        LOGGER.debug(String.format("The returned value is %s", city));
         LOGGER.info("Method 'fromJSON' finished");
         return city;
     }
 
     public static void toXML(File file, City city) {
         LOGGER.info("Method 'toXML' started");
-        LOGGER.info(String.format("File object: %s", file));
-        LOGGER.info(String.format("City object: %s", city));
+        LOGGER.debug(String.format("File object: %s", file));
+        LOGGER.debug(String.format("City object: %s", city));
         if (!file.exists()) {
             LOGGER.warn(String.format("File '%s' does not exist", file.getName()));
         } else if (!file.canWrite()) {
@@ -72,6 +76,7 @@ public class Main {
         } else {
             try {
                 xmlMapper.writeValue(file, city);
+                LOGGER.info(String.format("The object has written in file '%s'", file.getName()));
             } catch (IOException e) {
                 LOGGER.error(String.format("The file '%s' could not be write", file.getName()));
                 LOGGER.error(e.getMessage());
