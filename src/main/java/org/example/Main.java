@@ -50,6 +50,7 @@ public class Main {
             LOGGER.warn(String.format("File '%s' can not read", file.getName()));
         } else {
             try {
+                LOGGER.info(String.format("File object: %s, name: %s", file, file.getName()));
                 city = objectMapper.readValue(file, City.class);
             } catch (IOException e) {
                 LOGGER.error(String.format("The file '%s' could not be read", file.getName()));
