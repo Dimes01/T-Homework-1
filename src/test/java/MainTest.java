@@ -9,7 +9,6 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,7 +23,6 @@ public class MainTest {
     @Mock
     private XmlMapper xmlMapper = mock(XmlMapper.class);
 
-    private Main main;
 
     @BeforeEach
     public void setUp() {
@@ -39,10 +37,9 @@ public class MainTest {
         File file = mock(File.class);
         when (file.exists()).thenReturn(false);
 
-        City city = main.fromJSON(file);
+        City city = Main.fromJSON(file);
 
         assertNull(city);
-//        verify(LOGGER).warn(String.format("File '%s' does not exist", file.getName()));
     }
 
     @Test
@@ -51,10 +48,9 @@ public class MainTest {
         when (file.exists()).thenReturn(true);
         when (file.canRead()).thenReturn(false);
 
-        City city = main.fromJSON(file);
+        City city = Main.fromJSON(file);
 
         assertNull(city);
-//        verify(LOGGER).warn(String.format("File '%s' can not read", file.getName()));
     }
 
 //    @Test
@@ -68,8 +64,6 @@ public class MainTest {
 //        City city = main.fromJSON(file);
 //
 //        assertNull(city);
-////        verify(LOGGER).error(String.format("The file '%s' could not be read", file.getName()));
-////        verify(LOGGER).error(exception.getMessage());
 //    }
 //
 //    @Test
@@ -85,8 +79,6 @@ public class MainTest {
 //
 //        assertNotNull(city);
 //        assertEquals(expectedCity, city);
-////        verify(LOGGER, never()).warn(anyString());
-////        verify(LOGGER, never()).error(anyString());
 //    }
 
 //    @Test
