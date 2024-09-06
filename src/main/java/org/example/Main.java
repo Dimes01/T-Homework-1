@@ -2,7 +2,7 @@ package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import models.City;
+import models.lesson2.City;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
