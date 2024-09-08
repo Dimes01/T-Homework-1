@@ -1,22 +1,37 @@
 package models.lesson3;
 
 public class ListNode<T> {
-    private T previousNode;
-    private T nextNode;
+    private T value;
+    private ListNode<T> previousNode;
+    private ListNode<T> nextNode;
 
-    public T getNext() {
+    public ListNode(T value, ListNode<T> previousNode, ListNode<T> nextNode) {
+        this.value = value;
+        this.previousNode = previousNode;
+        this.nextNode = nextNode;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
+    public void setValue(T newValue) {
+        value = newValue;
+    }
+
+    public ListNode<T> getNext() {
         return nextNode;
     }
 
-    public T getPrevious() {
+    public ListNode<T> getPrevious() {
         return previousNode;
     }
 
-    public void setNext(T node) {
+    public void setNext(ListNode<T> node) {
         nextNode = node;
     }
 
-    public void setPrevious(T node) {
+    public void setPrevious(ListNode<T> node) {
         previousNode = node;
     }
 }
