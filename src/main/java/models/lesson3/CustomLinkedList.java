@@ -20,15 +20,16 @@ public class CustomLinkedList<T> {
     }
 
     public boolean add(T t) {
-        last = new ListNode<>(t, last, null);
-        if (size() == 0) {
-            last.setPrevious(last);
-            last.setNext(last);
-            first = last;
-        } else {
-            last.getPrevious().setNext(last);
+        ListNode<T> newNode = new ListNode<>(t, last, null);
+        if (last != null) {
+            last.setNextNode(newNode);
         }
-
+        last = newNode;
+        if (first == null) {
+            first = newNode;
+            first.setNextNode(last);
+            last.setPreviousNode(first);
+        }
         ++size;
         return true;
     }
@@ -39,46 +40,20 @@ public class CustomLinkedList<T> {
 
     public T remove(int index) {
         var rem = getNode(index);
-        if (index == 0) {
-            removeFirst();
-        } else if (index == size - 1) {
-            removeLast();
-        } else {
-            var prev = rem.getPrevious();
-            var next = rem.getNext();
-            prev.setNext(next);
-            next.setPrevious(prev);
-        }
+        removeNode(rem);
         return rem.getValue();
     }
 
     public boolean remove(Object o) {
         var node = getNode(o);
         if (node != null) {
-            if (node.getPrevious() == null)
-                removeFirst();
-            else if (node.getNext() == null)
-                removeLast();
-            else {
-                var prev = node.getPrevious();
-                var next = node.getNext();
-                prev.setNext(next);
-                next.setPrevious(prev);
-            }
+            removeNode(node);
         }
         return node != null;
     }
 
     public boolean contains(Object o) {
-        var temp = first;
-        var flag = false;
-        while (temp != null && !flag) {
-            if (temp.getValue().equals(o)) {
-                flag = true;
-            }
-            temp = temp.getNext();
-        }
-        return flag;
+        return getNode(o) != null;
     }
 
     public boolean addAll(Collection<? extends T> c) {
@@ -95,7 +70,7 @@ public class CustomLinkedList<T> {
             if (temp.getValue().equals(o)) {
                 flag = true;
             } else {
-                temp = temp.getNext();
+                temp = temp.getNextNode();
             }
         }
         return temp;
@@ -106,31 +81,29 @@ public class CustomLinkedList<T> {
         ListNode<T> temp;
         if (index < size / 2) {
             temp = first;
-            while (index >= 0) {
-                --index;
-                temp = temp.getNext();
+            for (; index >= 0; --index) {
+                temp = temp.getNextNode();
             }
         } else {
             temp = last;
-            while (index >= 0) {
-                --index;
-                temp = temp.getPrevious();
+            for (; index >= 0; --index) {
+                temp = temp.getPreviousNode();
             }
         }
         return temp;
     }
 
-    private T removeFirst() {
-        var temp = first;
-        first = first.getNext();
-        first.setPrevious(null);
-        return temp.getValue();
-    }
-
-    private T removeLast() {
-        var temp = last;
-        last = last.getPrevious();
-        last.setNext(null);
-        return temp.getValue();
+    private void removeNode(ListNode<T> node) {
+        if (node.getPreviousNode() != null) {
+            node.getPreviousNode().setNextNode(node.getNextNode());
+        } else {
+            first = node.getNextNode();
+        }
+        if (node.getNextNode() != null) {
+            node.getNextNode().setPreviousNode(node.getPreviousNode());
+        } else {
+            last = node.getPreviousNode();
+        }
+        size--;
     }
 }
