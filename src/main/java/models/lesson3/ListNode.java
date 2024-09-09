@@ -1,5 +1,7 @@
 package models.lesson3;
 
+import lombok.Data;
+
 public class ListNode<T> {
     private T value;
     private ListNode<T> previousNode;
