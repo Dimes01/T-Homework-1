@@ -81,12 +81,12 @@ public class CustomLinkedList<T> {
         ListNode<T> temp;
         if (index < size / 2) {
             temp = first;
-            for (; index >= 0; --index) {
+            for (long i = 0; i < index; ++i) {
                 temp = temp.getNextNode();
             }
         } else {
             temp = last;
-            for (; index >= 0; --index) {
+            for (long i = size - 1; i > index; --i) {
                 temp = temp.getPreviousNode();
             }
         }
