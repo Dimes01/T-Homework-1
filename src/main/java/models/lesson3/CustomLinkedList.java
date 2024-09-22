@@ -1,6 +1,7 @@
 package models.lesson3;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public class CustomLinkedList<T> {
     private long size = 0;
@@ -44,16 +45,16 @@ public class CustomLinkedList<T> {
         return rem.getValue();
     }
 
-    public boolean remove(Object o) {
-        var node = getNode(o);
+    public boolean remove(T removeNode) {
+        var node = getNode(removeNode);
         if (node != null) {
             removeNode(node);
         }
         return node != null;
     }
 
-    public boolean contains(Object o) {
-        return getNode(o) != null;
+    public boolean contains(T node) {
+        return getNode(node) != null;
     }
 
     public boolean addAll(Collection<? extends T> c) {
@@ -63,34 +64,32 @@ public class CustomLinkedList<T> {
         return true;
     }
 
-    private ListNode<T> getNode(Object o) {
+    private ListNode<T> getNode(T node) {
         var temp = first;
-        var flag = false;
-        while (temp != null && !flag) {
-            if (temp.getValue().equals(o)) {
-                flag = true;
-            } else {
-                temp = temp.getNextNode();
+        while (temp != null) {
+            if (Objects.equals(temp.getValue(), node)) {
+                return temp;
             }
+            temp = temp.getNextNode();
         }
-        return temp;
+        return null;
     }
 
     private ListNode<T> getNode(long index) {
         if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
-        ListNode<T> temp;
         if (index < size / 2) {
-            temp = first;
+            var temp = first;
             for (long i = 0; i < index; ++i) {
                 temp = temp.getNextNode();
             }
+            return temp;
         } else {
-            temp = last;
+            var temp = last;
             for (long i = size - 1; i > index; --i) {
                 temp = temp.getPreviousNode();
             }
+            return temp;
         }
-        return temp;
     }
 
     private void removeNode(ListNode<T> node) {
