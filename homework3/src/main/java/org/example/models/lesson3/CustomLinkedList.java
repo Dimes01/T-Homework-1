@@ -1,4 +1,4 @@
-package models.lesson3;
+package org.example.models.lesson3;
 
 import java.util.Collection;
 import java.util.Objects;

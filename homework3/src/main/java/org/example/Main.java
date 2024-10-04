@@ -1,14 +1,10 @@
 package org.example;
 
-import lombok.NonNull;
-import models.lesson3.CustomLinkedList;
+import org.example.models.lesson3.CustomLinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {

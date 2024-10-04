@@ -1,10 +1,10 @@
-import models.lesson3.CustomLinkedList;
+package org.example;
+
+import org.example.models.lesson3.CustomLinkedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
