@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: homework8
+  jackson:
+    date-format: dd/MM/yyyy
+  datasource:
+    url: https://www.cbr.ru
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        slowCallDurationThreshold: 4s
+        slowCallRateThreshold: 90
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        minimumNumberOfCalls: 10
+    instances:
+      myCircuitBreaker:
+        baseConfig: default
+        waitDurationInOpenState: 20s

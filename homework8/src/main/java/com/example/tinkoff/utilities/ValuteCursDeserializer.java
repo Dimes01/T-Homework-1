@@ -10,8 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,8 +18,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ValuteCursDeserializer extends StdDeserializer<ValuteCurs> {
-    @Autowired
-    private Environment env;
+    @Value("${spring.jackson.date-format}")
+    private String dateFormat;
 
     protected ValuteCursDeserializer() {
         this(null);
@@ -32,8 +31,7 @@ public class ValuteCursDeserializer extends StdDeserializer<ValuteCurs> {
 
     @Override
     public ValuteCurs deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
-        var format = DateTimeFormatter
-                .ofPattern(env.getProperty("spring.jackson.date-format", "dd/MM/yyyy"));
+        var format = DateTimeFormatter.ofPattern(dateFormat);
 
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
         LocalDate date = LocalDate.parse(node.get("date").textValue(), format);
