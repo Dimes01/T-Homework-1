@@ -1,8 +1,10 @@
 package com.example.tinkoff.services;
 
 import com.example.tinkoff.Homework8Application;
+import com.example.tinkoff.models.AllValutes;
 import com.example.tinkoff.models.Valute;
 import com.example.tinkoff.models.ValuteCurs;
+import com.example.tinkoff.models.ValuteInfo;
 import com.example.tinkoff.utilities.XmlMapperConfiguration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -49,14 +52,19 @@ class ValuteServiceTest {
     @InjectMocks
     private ValuteService valuteService;
 
-    private XmlMapper localXmlMapper = XmlMapperConfiguration.xmlMapper();
+    private final XmlMapper localXmlMapper = XmlMapperConfiguration.xmlMapper();
 
     private static final ValuteCurs valuteCursWithValutes = new ValuteCurs(LocalDate.parse("2024-10-04"), "Foreign Currency Market", Arrays.asList(
             new Valute("R01010", "036", "AUD", 1, "Австралийский доллар", 16.0102, 16.0102),
             new Valute("R01035", "826", "GBP", 1, "Фунт стерлингов Соединенного королевства", 43.8254, 43.8254)
     ));
     private static final ValuteCurs valuteCursWithoutValutes = new ValuteCurs(LocalDate.parse("2024-10-05"), "Foreign Currency Market", new LinkedList<>());
-    private String simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
+    private static final AllValutes allValutes = new AllValutes("Foreign Currency Market Lib", Arrays.asList(
+            new ValuteInfo("R01010", "Австралийский доллар", "Australian Dollar", 1, "R01010", 36, "AUD"),
+            new ValuteInfo("R01015", "Австрийский шиллинг", "Austrian Shilling", 1000, "R01015", 40, "ATS")
+    ));
+
+    private String simpleResponse;
 
     ValuteServiceTest() throws JsonProcessingException {
     }
@@ -70,8 +78,8 @@ class ValuteServiceTest {
 
     private static Stream<Arguments> getCurrenciesCursesByDate_positiveCituations() {
         return Stream.of(
-                Arguments.of(valuteCursWithValutes),
-                Arguments.of(valuteCursWithoutValutes)
+            Arguments.of(valuteCursWithValutes),
+            Arguments.of(valuteCursWithoutValutes)
         );
     }
 
@@ -90,34 +98,63 @@ class ValuteServiceTest {
         assertEquals(expected, response);
     }
 
-    @Test
-    void getCurrenciesCursesByDate_notNullInformation_throwHttpClientErrorException() throws JsonProcessingException {
+    private static Stream<Throwable> exceptionProvider() {
+        return Stream.of(
+                new HttpClientErrorException(HttpStatus.BAD_REQUEST),
+                new RestClientResponseException("Test exception", HttpStatus.BAD_REQUEST.value(), "Bad Request", null, null, null),
+                new JsonProcessingException("Test exception") {}
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("exceptionProvider")
+    void getCurrenciesCursesByDate_notNullInformation_throwException(Throwable exception) throws JsonProcessingException {
         // Arrange
         simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
-        when(requestHeadersSpec.retrieve()).thenThrow(HttpClientErrorException.class);
+
+        if (exception instanceof HttpClientErrorException) {
+            when(requestHeadersSpec.retrieve()).thenThrow(exception);
+        } else if (exception instanceof RestClientResponseException) {
+            when(responseSpec.body(eq(String.class))).thenThrow(exception);
+        } else if (exception instanceof JsonProcessingException) {
+            when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
+            when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class))).thenThrow(exception);
+        }
 
         // Assert & Act
-        assertThrows(HttpClientErrorException.class, () -> valuteService.getCurrenciesCursesByDate(valuteCursWithValutes.getDate()));
+        assertThrows(exception.getClass(), () -> valuteService.getCurrenciesCursesByDate(valuteCursWithValutes.getDate()));
     }
 
     @Test
-    void getCurrenciesCursesByDate_notNullInformation_throwRestClientResponseException() throws JsonProcessingException {
+    void getValuteInfoByISOCharCode_notNullInformation_notNullObject() throws JsonProcessingException {
         // Arrange
-        simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
-        when(responseSpec.body(eq(String.class))).thenThrow(RestClientResponseException.class);
-
-        // Assert & Act
-        assertThrows(RestClientResponseException.class, () -> valuteService.getCurrenciesCursesByDate(valuteCursWithValutes.getDate()));
-    }
-
-    @Test
-    void getCurrenciesCursesByDate_notNullInformation_throwJsonProcessingException() throws JsonProcessingException {
-        // Arrange
-        simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
+        simpleResponse = localXmlMapper.writeValueAsString(allValutes);
         when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
-        when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class))).thenThrow(JsonProcessingException.class);
+        when(xmlMapper.readValue(Mockito.anyString(), eq(AllValutes.class))).thenReturn(allValutes);
+
+        // Act
+        var response = valuteService.getValuteInfoByISOCharCode(allValutes.getValutes().getFirst().getIsoCharCode());
+
+        // Assert
+        assertEquals(allValutes.getValutes().getFirst(), response);
+    }
+
+    @ParameterizedTest
+    @MethodSource("exceptionProvider")
+    void getValuteInfoByISOCharCode_notNullInformation_throwException(Throwable exception) throws JsonProcessingException {
+        // Arrange
+        simpleResponse = localXmlMapper.writeValueAsString(allValutes);
+
+        if (exception instanceof HttpClientErrorException) {
+            when(requestHeadersSpec.retrieve()).thenThrow(exception);
+        } else if (exception instanceof RestClientResponseException) {
+            when(responseSpec.body(eq(String.class))).thenThrow(exception);
+        } else if (exception instanceof JsonProcessingException) {
+            when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
+            when(xmlMapper.readValue(Mockito.anyString(), eq(AllValutes.class))).thenThrow(exception);
+        }
 
         // Assert & Act
-        assertThrows(JsonProcessingException.class, () -> valuteService.getCurrenciesCursesByDate(valuteCursWithValutes.getDate()));
+        assertThrows(exception.getClass(), () -> valuteService.getValuteInfoByISOCharCode(allValutes.getValutes().getFirst().getIsoCharCode()));
     }
 }
