@@ -1,4 +1,4 @@
-package com.example.tinkoff.utilities;
+package com.example.tinkoff.configurations;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

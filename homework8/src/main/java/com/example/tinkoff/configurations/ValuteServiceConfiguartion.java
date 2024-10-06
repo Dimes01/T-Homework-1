@@ -1,4 +1,4 @@
-package com.example.tinkoff.utilities;
+package com.example.tinkoff.configurations;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

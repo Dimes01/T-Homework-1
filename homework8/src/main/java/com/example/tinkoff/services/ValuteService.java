@@ -1,6 +1,7 @@
 package com.example.tinkoff.services;
 
 import com.example.tinkoff.models.AllValutes;
+import com.example.tinkoff.models.Valute;
 import com.example.tinkoff.models.ValuteCurs;
 import com.example.tinkoff.models.ValuteInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -69,6 +70,10 @@ public class ValuteService {
         }
         logger.info("Method 'getValuteInfoByISOCharCode': finished");
         return valuteInfo;
+    }
+
+    public double calculateAmountBetweenCurrencies(Valute currencyFrom, double amount, Valute currencyTo) {
+        return currencyTo.getValue() / (currencyFrom.getValue() * amount);
     }
 
     public ValuteCurs circuitFallbackCurrenciesCursesByDate(Throwable throwable) {
