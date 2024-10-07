@@ -26,8 +26,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webflux:3.3.4")
 
-	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+	implementation("com.fasterxml.jackson.core:jackson-core:2.18.0")
+	implementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
+	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.0")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.0")
 
 	implementation("io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion")
 	implementation("io.github.resilience4j:resilience4j-reactor:$resilience4jVersion")

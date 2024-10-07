@@ -10,6 +10,7 @@ import com.example.tinkoff.services.ValuteService;
 import com.example.tinkoff.utilities.EntityNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.Objects;
 @Validated
 @RestController("/currencies")
 public class CurrenciesController {
+    @Autowired
     private ValuteService valuteService;
     
     @GetMapping("/rates/{code}")
@@ -31,7 +33,7 @@ public class CurrenciesController {
             .getValutes().stream()
             .filter(c -> Objects.equals(c.getCharCode(), isoCharCode))
             .findFirst().get();
-        var rate = new Rate(currency.getCharCode(), currency.getVunitRate());
+        var rate = new Rate(currency.getCharCode(), Double.parseDouble(currency.getVunitRate()));
         return ResponseEntity.ok(rate);
     }
 

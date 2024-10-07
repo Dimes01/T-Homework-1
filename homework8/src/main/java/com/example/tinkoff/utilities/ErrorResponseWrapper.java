@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class ErrorResponseWrapper {
-    private record ErrorMessage(String message, int code) {}
+    public record ErrorMessage(String message, int code) {}
 
     @ExceptionHandler({JsonProcessingException.class})
     public ResponseEntity<ErrorMessage> handleJsonProcessingException(JsonProcessingException e) {
