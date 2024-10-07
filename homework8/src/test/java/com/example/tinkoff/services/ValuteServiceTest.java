@@ -6,10 +6,10 @@ import com.example.tinkoff.models.Valute;
 import com.example.tinkoff.models.ValuteCurs;
 import com.example.tinkoff.models.ValuteInfo;
 import com.example.tinkoff.configurations.XmlMapperConfiguration;
+import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,11 +49,11 @@ class ValuteServiceTest {
     @InjectMocks
     private ValuteService valuteService;
 
-    private final XmlMapper localXmlMapper = XmlMapperConfiguration.standardXmlMapper();
+    private final XmlMapper localXmlMapper = XmlMapperConfiguration.xmlMapper();
 
     private static final ValuteCurs valuteCursWithValutes = new ValuteCurs("2024-10-04", "Foreign Currency Market", Arrays.asList(
-            new Valute("R01010", "036", "AUD", 1, "Австралийский доллар", "16,0102", "16,0102"),
-            new Valute("R01035", "826", "GBP", 1, "Фунт стерлингов Соединенного королевства", "43,8254", "43,8254")
+            new Valute("R01010", "036", "AUD", 1, "Австралийский доллар", 16.0102, 16.0102),
+            new Valute("R01035", "826", "GBP", 1, "Фунт стерлингов Соединенного королевства", 43.8254, 43.8254)
     ));
     private static final AllValutes allValutes = new AllValutes("Foreign Currency Market Lib", Arrays.asList(
             new ValuteInfo("R01010", "Австралийский доллар", "Australian Dollar", 1, "R01010", 36, "AUD"),
@@ -72,6 +72,22 @@ class ValuteServiceTest {
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
     }
 
+    @Test
+    void getCurrencyCursByDate_notNullInformation_notNullObject() throws JsonProcessingException, CurrencyNotFoundException {
+        // Arrange
+        simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
+        when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
+        when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class))).thenReturn(valuteCursWithValutes);
+        var date = LocalDate.parse(valuteCursWithValutes.getDate());
+
+        // Act
+        var response = valuteService.getCurrencyCursByDate(date, "");
+
+        // Assert
+        assertEquals(valuteCursWithValutes, response);
+    }
+
+
     private static Stream<Throwable> exceptionProvider() {
         return Stream.of(
                 new HttpClientErrorException(HttpStatus.BAD_REQUEST),
@@ -80,35 +96,9 @@ class ValuteServiceTest {
         );
     }
 
-    @Test
-    public void myTest() throws JsonProcessingException {
-        var myValuteService = new ValuteService();
-        var date = LocalDate.parse(valuteCursWithValutes.getDate());
-        var response = valuteService.getCurrenciesCursesByDate(date);
-        System.out.println(response);
-    }
-
-
-    @Disabled
-    @Test
-    void getCurrenciesCursesByDate_notNullInformation_notNullObject() throws JsonProcessingException {
-        // Arrange
-        simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
-        when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
-        when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class))).thenReturn(valuteCursWithValutes);
-        var date = LocalDate.parse(valuteCursWithValutes.getDate());
-
-        // Act
-        var response = valuteService.getCurrenciesCursesByDate(date);
-
-        // Assert
-        assertEquals(valuteCursWithValutes, response);
-    }
-
-    @Disabled
     @ParameterizedTest
     @MethodSource("exceptionProvider")
-    void getCurrenciesCursesByDate_notNullInformation_throwException(Throwable exception) throws JsonProcessingException {
+    void getCurrencyCursByDate_notNullInformation_throwException(Throwable exception) throws JsonProcessingException {
         // Arrange
         simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
         var date = LocalDate.parse(valuteCursWithValutes.getDate());
@@ -123,6 +113,6 @@ class ValuteServiceTest {
         }
 
         // Assert & Act
-        assertThrows(exception.getClass(), () -> valuteService.getCurrenciesCursesByDate(date));
+        assertThrows(exception.getClass(), () -> valuteService.getCurrencyCursByDate(date, ""));
     }
 }

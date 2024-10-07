@@ -1,5 +1,7 @@
 package com.example.tinkoff.models;
 
+import com.example.tinkoff.utilities.CostDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,8 +28,10 @@ public class Valute {
     private String name;
 
     @JacksonXmlProperty(localName = "Value")
-    private String value;
+    @JsonDeserialize(using = CostDeserializer.class)
+    private double value;
 
     @JacksonXmlProperty(localName = "VunitRate")
-    private String vunitRate;
+    @JsonDeserialize(using = CostDeserializer.class)
+    private double vunitRate;
 }

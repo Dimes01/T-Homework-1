@@ -4,6 +4,8 @@ import com.example.tinkoff.models.AllValutes;
 import com.example.tinkoff.models.Valute;
 import com.example.tinkoff.models.ValuteCurs;
 import com.example.tinkoff.models.ValuteInfo;
+import com.example.tinkoff.utilities.CurrencyNotExistException;
+import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -33,32 +35,65 @@ public class ValuteService {
 
     private final Logger logger = LoggerFactory.getLogger(ValuteService.class);
 
-    @Cacheable(value = "currenciesCursesByDate", key = "#date")
+    @Cacheable(value = "currenciesCursesByDate")
     @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "circuitFallbackCurrenciesCursesByDate")
-    public ValuteCurs getCurrenciesCursesByDate(LocalDate date) throws JsonProcessingException {
+    public Valute getCurrencyCursByDate(LocalDate date, String isoCharCode) throws JsonProcessingException, CurrencyNotFoundException {
         logger.info("Method 'getCurrenciesCursesByDate': started");
-        var dateFormatted = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+        var dateFormatted = date.format(DateTimeFormatter.ofPattern(dateFormat));
         var response = restClient.get()
                 .uri("/scripts/XML_daily.asp?date_req=" + dateFormatted)
                 .retrieve()
                 .body(String.class);
         logger.debug("Method 'getCurrenciesCursesByDate': currencies curses is received");
-        ValuteCurs valCurs = xmlMapper.readValue(response, ValuteCurs.class);
-        if (valCurs != null) {
-            logger.debug("Method 'getCurrenciesCursesByDate': currencies curses is converted");
-        }
+
+        Valute currency = xmlMapper.readValue(response, ValuteCurs.class)
+                .getValutes().stream()
+                .filter(c -> Objects.equals(c.getCharCode(), isoCharCode))
+                .findFirst().orElse(null);
+        if (currency == null)
+            throw new CurrencyNotFoundException(isoCharCode);
+        logger.debug("Method 'getCurrenciesCursesByDate': currencies curses is converted");
+
         logger.info("Method 'getCurrenciesCursesByDate': finished");
-        return valCurs;
+        return currency;
+    }
+
+    @Cacheable(value = "valuteInfoByISOCharCode", key = "#isoCharCode")
+    @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "circuitFallbackValuteInfoByISOCharCode")
+    public ValuteInfo getValuteInfoByISOCharCode(String isoCharCode) throws JsonProcessingException, CurrencyNotExistException {
+        logger.info("Method 'getValuteInfoByISOCharCode': started");
+
+        var response = restClient.get()
+                .uri("/scripts/XML_valFull.asp")
+                .retrieve()
+                .body(String.class);
+        logger.debug("Method 'getValuteInfoByISOCharCode': currencies info is received");
+
+        ValuteInfo valuteInfo = xmlMapper.readValue(response, AllValutes.class).getValutes().stream()
+                .filter(v -> Objects.equals(v.getIsoCharCode(), isoCharCode))
+                .findFirst()
+                .orElse(null);
+        if (valuteInfo == null)
+            throw new CurrencyNotExistException(isoCharCode);
+        logger.debug("Method 'getValuteInfoByISOCharCode': currency is found");
+
+        logger.info("Method 'getValuteInfoByISOCharCode': finished");
+        return valuteInfo;
     }
 
     public double calculateAmountBetweenCurrencies(Valute currencyFrom, double amount, Valute currencyTo) {
-        double currencyToValue = Double.parseDouble(currencyTo.getValue());
-        double currencyFromValue = Double.parseDouble(currencyFrom.getValue());
-        return currencyToValue / (currencyFromValue * amount);
+        return currencyTo.getValue() / (currencyFrom.getValue() * amount);
     }
 
     public ValuteCurs circuitFallbackCurrenciesCursesByDate(Throwable throwable) {
         logger.error("Circuit breaker activated for 'getCurrenciesCursesByDate': {}", throwable.getMessage());
         return null;
     }
+
+    public ValuteInfo circuitFallbackValuteInfoByISOCharCode(String isoCharCode, Throwable throwable) {
+        logger.error("Circuit breaker activated for 'getValuteInfoByISOCharCode': {}", throwable.getMessage());
+        return null;
+    }
+
 }

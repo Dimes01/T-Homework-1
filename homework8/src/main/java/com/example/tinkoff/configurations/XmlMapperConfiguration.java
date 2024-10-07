@@ -7,17 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class XmlMapperConfiguration {
     @Bean
-    public static XmlMapper standardXmlMapper() {
+    public static XmlMapper xmlMapper() {
         return new XmlMapper();
     }
-
-//    @Bean
-//    public static XmlMapper xmlMapper() {
-//        var xmlMapper = new XmlMapper();
-//        xmlMapper.registerModule(new JavaTimeModule());
-//        xmlMapper.registerModule(new Jdk8Module());
-//        xmlMapper.registerModule(new ParameterNamesModule());
-//        xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//        return xmlMapper;
-//    }
 }
