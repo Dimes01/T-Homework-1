@@ -4,8 +4,6 @@ import com.example.tinkoff.configurations.XmlMapperConfiguration;
 import com.example.tinkoff.dto.ConvertRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,7 +18,6 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -33,41 +30,45 @@ public class CurrenciesControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final XmlMapper xmlMapper = XmlMapperConfiguration.xmlMapper();
-    private final ConvertRequest convertRequest = new ConvertRequest("AUD", "GBP", 1);
-    private final String convertRequestString = xmlMapper.writeValueAsString(convertRequest);
-
-    public CurrenciesControllerTest() throws JsonProcessingException {
-    }
+    private static final XmlMapper utilXmlMapper = XmlMapperConfiguration.xmlMapper();
 
 
-    @Test
-    public void getCurrenciesRate_correctParameter_successful() throws Exception {
-        mockMvc.perform(get("/rates/{0}", "AUD"))
-                .andExpect(status().isOk());
-    }
-
-
-    private static Stream<Arguments> ratesParameters_incorrect() {
+    private static Stream<Arguments> ratesParameters_allSituations() {
         return Stream.of(
-                Arguments.of("", status().is4xxClientError()),
-                Arguments.of(null, status().is4xxClientError())
+                Arguments.of("AUD", status().isOk()),
+                Arguments.of("A", status().isBadRequest()),
+                Arguments.of("", status().isBadRequest()),
+                Arguments.of(null, status().isBadRequest())
         );
     }
 
     @ParameterizedTest
-    @MethodSource("ratesParameters_incorrect")
-    public void getCurrenciesRate_incorrectParameter_throwExceptions(String code, ResultMatcher expectedResult) throws Exception {
+    @MethodSource("ratesParameters_allSituations")
+    public void getCurrenciesRate(String code, ResultMatcher expectedResult) throws Exception {
         mockMvc.perform(get("/rates/{0}", code))
                 .andExpect(expectedResult);
     }
 
-    @Test
-    public void getCurrencyConvert() throws Exception {
+
+    private static Stream<Arguments> convertParameters_allSituations() throws JsonProcessingException {
+        return Stream.of(
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("AUD", "GBP", 1)), status().isOk()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("AUD", "GBP", 0)), status().isBadRequest()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("AUD", "", 1)), status().isBadRequest()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("AUD", "", 0)), status().isBadRequest()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("", "GBP", 1)), status().isBadRequest()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("", "GBP", 0)), status().isBadRequest()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("", "", 1)), status().isBadRequest()),
+            Arguments.of(utilXmlMapper.writeValueAsString(new ConvertRequest("", "", 0)), status().isBadRequest())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("convertParameters_allSituations")
+    public void getCurrencyConvert(String content, ResultMatcher expectedResult) throws Exception {
         mockMvc.perform(post("/convert")
-                .content(convertRequestString)
+                .content(content)
                 .contentType(MediaType.APPLICATION_XML))
-            .andExpect(status().isOk())
-            .andDo(print());
+            .andExpect(expectedResult);
     }
 }

@@ -1,8 +1,6 @@
 spring:
   application:
     name: homework8
-  jackson:
-    date-format: dd/MM/yyyy
   datasource:
     url: https://www.cbr.ru
 resilience4j:

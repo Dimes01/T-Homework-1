@@ -30,13 +30,12 @@ public class ValuteService {
     @Autowired
     private XmlMapper xmlMapper;
 
-    @Value("${spring.jackson.date-format}")
-    private String dateFormat;
+    private final String dateFormat = "dd/MM/yyyy";
 
     private final Logger logger = LoggerFactory.getLogger(ValuteService.class);
 
     @Cacheable(value = "currenciesCursesByDate")
-    @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "circuitFallbackCurrenciesCursesByDate")
+    @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "circuitFallbackCurrencyCursByDate")
     public Valute getCurrencyCursByDate(LocalDate date, String isoCharCode) throws JsonProcessingException, CurrencyNotFoundException {
         logger.info("Method 'getCurrenciesCursesByDate': started");
 
@@ -86,7 +85,7 @@ public class ValuteService {
         return currencyTo.getValue() / (currencyFrom.getValue() * amount);
     }
 
-    public ValuteCurs circuitFallbackCurrenciesCursesByDate(Throwable throwable) {
+    public Valute circuitFallbackCurrencyCursByDate(LocalDate date, String isoCharCode, Throwable throwable) {
         logger.error("Circuit breaker activated for 'getCurrenciesCursesByDate': {}", throwable.getMessage());
         return null;
     }

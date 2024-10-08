@@ -12,18 +12,20 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,7 +51,7 @@ class ValuteServiceTest {
     @InjectMocks
     private ValuteService valuteService;
 
-    private final XmlMapper localXmlMapper = XmlMapperConfiguration.xmlMapper();
+    private final XmlMapper utilXmlMapper = XmlMapperConfiguration.xmlMapper();
 
     private static final ValuteCurs valuteCursWithValutes = new ValuteCurs("2024-10-04", "Foreign Currency Market", Arrays.asList(
             new Valute("R01010", "036", "AUD", 1, "Австралийский доллар", 16.0102, 16.0102),
@@ -62,57 +64,79 @@ class ValuteServiceTest {
 
     private String simpleResponse;
 
-    ValuteServiceTest() throws JsonProcessingException {
+    public ValuteServiceTest() throws JsonProcessingException {
     }
 
     @BeforeEach
-    void set_up() {
+    public void set_up() {
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(Mockito.anyString())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
     }
 
     @Test
-    void getCurrencyCursByDate_notNullInformation_notNullObject() throws JsonProcessingException, CurrencyNotFoundException {
+    public void getCurrencyCursByDate_notNullInformation_notNullObject() throws JsonProcessingException, CurrencyNotFoundException {
         // Arrange
-        simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
+        var expectedObject = valuteCursWithValutes.getValutes().getFirst();
+        simpleResponse = utilXmlMapper.writeValueAsString(expectedObject);
         when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
         when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class))).thenReturn(valuteCursWithValutes);
         var date = LocalDate.parse(valuteCursWithValutes.getDate());
 
         // Act
-        var response = valuteService.getCurrencyCursByDate(date, "");
+        var response = valuteService.getCurrencyCursByDate(date, "AUD");
 
         // Assert
-        assertEquals(valuteCursWithValutes, response);
+        assertEquals(expectedObject, response);
     }
 
 
-    private static Stream<Throwable> exceptionProvider() {
+    private static Stream<Class<? extends Exception>> exceptionProvider() {
         return Stream.of(
-                new HttpClientErrorException(HttpStatus.BAD_REQUEST),
-                new RestClientResponseException("Test exception", HttpStatus.BAD_REQUEST.value(), "Bad Request", null, null, null),
-                new JsonProcessingException("Test exception") {}
+                HttpClientErrorException.class,
+                RestClientResponseException.class,
+                JsonProcessingException.class,
+                CurrencyNotFoundException.class
         );
     }
 
     @ParameterizedTest
     @MethodSource("exceptionProvider")
-    void getCurrencyCursByDate_notNullInformation_throwException(Throwable exception) throws JsonProcessingException {
+    public void getCurrencyCursByDate_notNullInformation_throwException(Class<? extends Exception> exceptionClass) throws JsonProcessingException {
         // Arrange
-        simpleResponse = localXmlMapper.writeValueAsString(valuteCursWithValutes);
+        var expectedObject = valuteCursWithValutes.getValutes().getFirst();
+        simpleResponse = utilXmlMapper.writeValueAsString(expectedObject);
         var date = LocalDate.parse(valuteCursWithValutes.getDate());
 
-        if (exception instanceof HttpClientErrorException) {
-            when(requestHeadersSpec.retrieve()).thenThrow(exception);
-        } else if (exception instanceof RestClientResponseException) {
-            when(responseSpec.body(eq(String.class))).thenThrow(exception);
-        } else if (exception instanceof JsonProcessingException) {
+        if (exceptionClass == HttpClientErrorException.class) {
+            when(requestHeadersSpec.retrieve()).thenThrow(exceptionClass);
+        } else if (exceptionClass == RestClientResponseException.class) {
+            when(responseSpec.body(eq(String.class))).thenThrow(exceptionClass);
+        } else {
             when(responseSpec.body(eq(String.class))).thenReturn(simpleResponse);
-            when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class))).thenThrow(exception);
+            var whenReadValue = when(xmlMapper.readValue(Mockito.anyString(), eq(ValuteCurs.class)));
+            if (exceptionClass == JsonProcessingException.class) {
+                whenReadValue.thenThrow(exceptionClass);
+            } else if (exceptionClass == CurrencyNotFoundException.class) {
+                whenReadValue.thenReturn(new ValuteCurs("2024-10-04", "Foreign Currency Market", Collections.emptyList()));
+            }
         }
 
         // Assert & Act
-        assertThrows(exception.getClass(), () -> valuteService.getCurrencyCursByDate(date, ""));
+        assertThrows(exceptionClass, () -> valuteService.getCurrencyCursByDate(date, "AUD"));
+    }
+
+    private static Stream<Arguments> calculateAmountBetweenCurrencies_allSituations() {
+        return Stream.of(
+                Arguments.of(valuteCursWithValutes.getValutes().get(0), valuteCursWithValutes.getValutes().get(1), 10)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("calculateAmountBetweenCurrencies_allSituations")
+    public void test_calculateAmountBetweenCurrencies(Valute currencyFrom, Valute currencyTo, double amount) {
+        var currencyService = new ValuteService();
+        double expectedAmount = currencyTo.getValue() / (currencyFrom.getValue() * amount);
+        assertEquals(expectedAmount, currencyService.calculateAmountBetweenCurrencies(currencyFrom, amount, currencyTo));
     }
 }
