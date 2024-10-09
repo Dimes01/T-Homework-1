@@ -32,6 +32,12 @@ public class CurrenciesControllerTest {
 
     private static final XmlMapper utilXmlMapper = XmlMapperConfiguration.xmlMapper();
 
+    // К моменту написания комментария CircuitBreaker в ValuteService перехватывает исключения CurrencyNotExistException
+    // и CurrencyNotFoundException, хотя в конфиге в application.yml они вроде как исключены (поле ignoreExceptions).
+    // Из-за этого в контроллере срабатывает неверный ExceptionHandler и поэтому только первый тест с корректными
+    // данными проходит. У меня только 2 мысли на данный момент:
+    //  - либо по какой-то причине не применился конфиг
+    //  - либо сам конфиг написан неверно
 
     private static Stream<Arguments> ratesParameters_allSituations() {
         return Stream.of(

@@ -8,8 +8,8 @@ springdoc:
     disable-swagger-default-url: true
 resilience4j:
   circuitbreaker:
-    configs:
-      default:
+    instances:
+      myCircuitBreaker:
         slidingWindowSize: 100
         permittedNumberOfCallsInHalfOpenState: 10
         slowCallDurationThreshold: 4s
@@ -20,6 +20,3 @@ resilience4j:
         ignoreExceptions:
           - com.example.tinkoff.utilities.CurrencyNotExistException
           - com.example.tinkoff.utilities.CurrencyNotFoundException
-    instances:
-      myCircuitBreaker:
-        baseConfig: default
