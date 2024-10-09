@@ -14,6 +14,9 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         minimumNumberOfCalls: 10
+        ignoreExceptions:
+          - com.example.tinkoff.utilities.CurrencyNotExistException
+          - com.example.tinkoff.utilities.CurrencyNotFoundException
     instances:
       myCircuitBreaker:
         baseConfig: default

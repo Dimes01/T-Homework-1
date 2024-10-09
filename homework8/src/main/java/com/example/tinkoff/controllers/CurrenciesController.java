@@ -6,9 +6,11 @@ import com.example.tinkoff.models.Rate;
 import com.example.tinkoff.services.ValuteService;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
+import com.example.tinkoff.utilities.ServiceUnavailableException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +32,7 @@ public class CurrenciesController {
     @GetMapping("/rates/{code}")
     public ResponseEntity<Rate> getCurrenciesRate(@NotBlank @PathVariable("code") String isoCharCode) throws JsonProcessingException, CurrencyNotExistException, CurrencyNotFoundException {
         var date = LocalDate.now();
-        var currencyInfo = valuteService.getValuteInfoByISOCharCode(isoCharCode);
+        valuteService.getValuteInfoByISOCharCode(isoCharCode);
         var currency = valuteService.getCurrencyCursByDate(date, isoCharCode);
         var rate = new Rate(currency.getCharCode(), currency.getVunitRate());
         return ResponseEntity.ok(rate);
@@ -40,11 +42,15 @@ public class CurrenciesController {
     public ResponseEntity<ConvertResponse> getCurrencyConvert(@RequestBody ConvertRequest convertRequest) throws JsonProcessingException, CurrencyNotExistException, CurrencyNotFoundException {
         var fromCurrencyCode = convertRequest.getFromCurrency();
         var toCurrencyCode = convertRequest.getToCurrency();
-        var currencyFromInfo = valuteService.getValuteInfoByISOCharCode(fromCurrencyCode);
-        var currencyToInfo = valuteService.getValuteInfoByISOCharCode(toCurrencyCode);
+
+        valuteService.getValuteInfoByISOCharCode(fromCurrencyCode);
+        valuteService.getValuteInfoByISOCharCode(toCurrencyCode);
+
         var date = LocalDate.now();
+
         var fromCurrency = valuteService.getCurrencyCursByDate(date, fromCurrencyCode);
         var toCurrency = valuteService.getCurrencyCursByDate(date, toCurrencyCode);
+
         var amount = valuteService.calculateAmountBetweenCurrencies(fromCurrency, convertRequest.getAmount(), toCurrency);
         return ResponseEntity.ok(new ConvertResponse(convertRequest.getFromCurrency(), convertRequest.getToCurrency(), amount));
     }
@@ -62,14 +68,6 @@ public class CurrenciesController {
         );
     }
 
-    @ExceptionHandler({JsonProcessingException.class})
-    public ResponseEntity<ErrorMessage> handleJsonProcessingException(JsonProcessingException e) {
-        return new ResponseEntity<>(
-            new ErrorMessage(e.getMessage(), HttpStatus.BAD_REQUEST.value()),
-            HttpStatus.BAD_REQUEST
-        );
-    }
-
     @ExceptionHandler({CurrencyNotExistException.class})
     public ResponseEntity<ErrorMessage> handleCurrencyNotExistException(CurrencyNotExistException e) {
         return new ResponseEntity<>(
@@ -79,10 +77,21 @@ public class CurrenciesController {
     }
 
     @ExceptionHandler({CurrencyNotFoundException.class})
-    public ResponseEntity<ErrorMessage> CurrencyNotFoundException(CurrencyNotExistException e) {
+    public ResponseEntity<ErrorMessage> handleCurrencyNotFoundException(CurrencyNotExistException e) {
         return new ResponseEntity<>(
             new ErrorMessage(String.format("Currency with code '{0}' is not found", e.getIsoCharCode()), HttpStatus.NOT_FOUND.value()),
             HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler({ServiceUnavailableException.class})
+    public ResponseEntity<ErrorMessage> handleServiceUnavailableException(ServiceUnavailableException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Retry-After", "3600");  // Например, retry через 1 час
+        return new ResponseEntity<>(
+                new ErrorMessage(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE.value()),
+                headers,
+                HttpStatus.SERVICE_UNAVAILABLE
         );
     }
 }

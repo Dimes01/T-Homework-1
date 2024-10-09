@@ -6,6 +6,7 @@ import com.example.tinkoff.models.ValuteCurs;
 import com.example.tinkoff.models.ValuteInfo;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
+import com.example.tinkoff.utilities.ServiceUnavailableException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -50,8 +51,7 @@ public class ValuteService {
                 .getValutes().stream()
                 .filter(c -> Objects.equals(c.getCharCode(), isoCharCode))
                 .findFirst().orElse(null);
-        if (currency == null)
-            throw new CurrencyNotFoundException(isoCharCode);
+        if (currency == null) throw new CurrencyNotFoundException(isoCharCode);
         logger.debug("Method 'getCurrenciesCursesByDate': currencies curses is converted");
 
         logger.info("Method 'getCurrenciesCursesByDate': finished");
@@ -73,8 +73,7 @@ public class ValuteService {
                 .filter(v -> Objects.equals(v.getIsoCharCode(), isoCharCode))
                 .findFirst()
                 .orElse(null);
-        if (valuteInfo == null)
-            throw new CurrencyNotExistException(isoCharCode);
+        if (valuteInfo == null) throw new CurrencyNotExistException(isoCharCode);
         logger.debug("Method 'getValuteInfoByISOCharCode': currency is found");
 
         logger.info("Method 'getValuteInfoByISOCharCode': finished");
@@ -87,12 +86,12 @@ public class ValuteService {
 
     public Valute circuitFallbackCurrencyCursByDate(LocalDate date, String isoCharCode, Throwable throwable) {
         logger.error("Circuit breaker activated for 'getCurrenciesCursesByDate': {}", throwable.getMessage());
-        return null;
+        throw new ServiceUnavailableException("Currency service is currently unavailable. Please try again later.");
     }
 
     public ValuteInfo circuitFallbackValuteInfoByISOCharCode(String isoCharCode, Throwable throwable) {
         logger.error("Circuit breaker activated for 'getValuteInfoByISOCharCode': {}", throwable.getMessage());
-        return null;
+        throw new ServiceUnavailableException("Currency service is currently unavailable. Please try again later.");
     }
 
 }

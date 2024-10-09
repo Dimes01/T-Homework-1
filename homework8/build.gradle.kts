@@ -27,6 +27,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webflux:3.3.4")
 
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+
 	implementation("com.fasterxml.jackson.core:jackson-core:2.18.0")
 	implementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
 	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.0")
