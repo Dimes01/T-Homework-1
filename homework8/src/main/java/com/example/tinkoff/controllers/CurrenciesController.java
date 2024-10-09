@@ -3,11 +3,18 @@ package com.example.tinkoff.controllers;
 import com.example.tinkoff.dto.ConvertRequest;
 import com.example.tinkoff.dto.ConvertResponse;
 import com.example.tinkoff.models.Rate;
+import com.example.tinkoff.models.Valute;
+import com.example.tinkoff.models.ValuteInfo;
 import com.example.tinkoff.services.ValuteService;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.example.tinkoff.utilities.ServiceUnavailableException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,7 +35,15 @@ public class CurrenciesController {
 
     @Autowired
     private ValuteService valuteService;
-    
+
+    @Operation(summary = "Get currency rate by date", description = "Provide a date and ISO char code to look up a specific currency rate")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved currency rate",
+                    content = @Content(schema = @Schema(implementation = Valute.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid date or ISO char code supplied"),
+            @ApiResponse(responseCode = "404", description = "Currency not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/rates/{code}")
     public ResponseEntity<Rate> getCurrenciesRate(@NotBlank @PathVariable("code") String isoCharCode) throws JsonProcessingException, CurrencyNotExistException, CurrencyNotFoundException {
         var date = LocalDate.now();
@@ -38,6 +53,14 @@ public class CurrenciesController {
         return ResponseEntity.ok(rate);
     }
 
+    @Operation(summary = "Get valute info by ISO char code", description = "Provide an ISO char code to look up a specific valute info")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved valute info",
+                    content = @Content(schema = @Schema(implementation = ValuteInfo.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ISO char code supplied"),
+            @ApiResponse(responseCode = "404", description = "Valute not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/convert")
     public ResponseEntity<ConvertResponse> getCurrencyConvert(@RequestBody ConvertRequest convertRequest) throws JsonProcessingException, CurrencyNotExistException, CurrencyNotFoundException {
         var fromCurrencyCode = convertRequest.getFromCurrency();
@@ -62,24 +85,33 @@ public class CurrenciesController {
             message = "Amount must be positive integer";
         else
             message = e.getParameter().getParameterName() + "must not be null or empty";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content type", "application/xml");
         return new ResponseEntity<>(
                 new ErrorMessage(message, HttpStatus.BAD_REQUEST.value()),
+                headers,
                 HttpStatus.BAD_REQUEST
         );
     }
 
     @ExceptionHandler({CurrencyNotExistException.class})
     public ResponseEntity<ErrorMessage> handleCurrencyNotExistException(CurrencyNotExistException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content type", "application/xml");
         return new ResponseEntity<>(
             new ErrorMessage(String.format("Currency with code '{0}' is not existed", e.getIsoCharCode()), HttpStatus.BAD_REQUEST.value()),
+            headers,
             HttpStatus.BAD_REQUEST
         );
     }
 
     @ExceptionHandler({CurrencyNotFoundException.class})
     public ResponseEntity<ErrorMessage> handleCurrencyNotFoundException(CurrencyNotExistException e) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content type", "application/xml");
         return new ResponseEntity<>(
             new ErrorMessage(String.format("Currency with code '{0}' is not found", e.getIsoCharCode()), HttpStatus.NOT_FOUND.value()),
+            headers,
             HttpStatus.NOT_FOUND
         );
     }
@@ -87,7 +119,7 @@ public class CurrenciesController {
     @ExceptionHandler({ServiceUnavailableException.class})
     public ResponseEntity<ErrorMessage> handleServiceUnavailableException(ServiceUnavailableException e) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Retry-After", "3600");  // Например, retry через 1 час
+        headers.add("Retry-After", "3600");
         return new ResponseEntity<>(
                 new ErrorMessage(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE.value()),
                 headers,

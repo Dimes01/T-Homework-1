@@ -3,6 +3,9 @@ spring:
     name: homework8
   datasource:
     url: https://www.cbr.ru
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
 resilience4j:
   circuitbreaker:
     configs:
@@ -20,4 +23,3 @@ resilience4j:
     instances:
       myCircuitBreaker:
         baseConfig: default
-        waitDurationInOpenState: 20s

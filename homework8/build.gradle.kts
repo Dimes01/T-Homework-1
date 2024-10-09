@@ -29,13 +29,14 @@ dependencies {
 
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
-	implementation("com.fasterxml.jackson.core:jackson-core:2.18.0")
-	implementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
-	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.0")
-	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.0")
+	implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+	implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
 
 	implementation("io.github.resilience4j:resilience4j-spring-boot2:$resilience4jVersion")
 	implementation("io.github.resilience4j:resilience4j-reactor:$resilience4jVersion")
+	implementation("io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")

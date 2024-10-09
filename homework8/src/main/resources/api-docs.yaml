@@ -1,0 +1,168 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+paths:
+  /convert:
+    post:
+      tags:
+      - currencies-controller
+      summary: Get valute info by ISO char code
+      description: Provide an ISO char code to look up a specific valute info
+      operationId: getCurrencyConvert
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConvertRequest"
+        required: true
+      responses:
+        "200":
+          description: Successfully retrieved valute info
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ValuteInfo"
+        "400":
+          description: Invalid ISO char code supplied
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConvertResponse"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConvertResponse"
+        "404":
+          description: Valute not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConvertResponse"
+  /rates/{code}:
+    get:
+      tags:
+      - currencies-controller
+      summary: Get currency rate by date
+      description: Provide a date and ISO char code to look up a specific currency
+        rate
+      operationId: getCurrenciesRate
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successfully retrieved currency rate
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Valute"
+        "400":
+          description: Invalid date or ISO char code supplied
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Rate"
+        "404":
+          description: Currency not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Rate"
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Rate"
+components:
+  schemas:
+    ConvertRequest:
+      required:
+      - fromCurrency
+      - toCurrency
+      type: object
+      properties:
+        fromCurrency:
+          type: string
+        toCurrency:
+          type: string
+        amount:
+          type: number
+          format: double
+    ValuteInfo:
+      required:
+      - engName
+      - id
+      - isoCharCode
+      - name
+      - parentCode
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        engName:
+          type: string
+        nominal:
+          type: integer
+          format: int32
+        parentCode:
+          type: string
+        isoNumCode:
+          type: integer
+          format: int32
+        isoCharCode:
+          type: string
+    ConvertResponse:
+      required:
+      - fromCurrency
+      - toCurrency
+      type: object
+      properties:
+        fromCurrency:
+          type: string
+        toCurrency:
+          type: string
+        convertedAmount:
+          type: number
+          format: double
+    Valute:
+      type: object
+      properties:
+        id:
+          type: string
+        numCode:
+          type: string
+        charCode:
+          type: string
+        nominal:
+          type: integer
+          format: int32
+        name:
+          type: string
+        value:
+          type: number
+          format: double
+        vunitRate:
+          type: number
+          format: double
+    Rate:
+      required:
+      - currency
+      type: object
+      properties:
+        currency:
+          type: string
+        rate:
+          type: number
+          format: double
