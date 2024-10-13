@@ -3,7 +3,6 @@ package org.example.aspects;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +15,7 @@ import java.lang.reflect.Method;
 public class LogExecutionTimeAspect {
     private final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAspect.class);
 
-    @Pointcut("@annotation(annotations.LogExecutionTime)")
-    public void hasAnnotation() {  }
-
-    @Around("hasAnnotation()")
+    @Around("@annotation(org.example.annotations.LogExecutionTime)")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
 

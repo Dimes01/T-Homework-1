@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: homework9
+
+executor:
+  fixed-thread-pool-size: 3
+  scheduled-thread-pool-size: 3
+  schedule-duration: PT1H
+
+logging:
+  level:
+    root: INFO

@@ -1,7 +1,7 @@
-package org.example.services;
+package com.example.services;
 
-import org.example.models.Category;
-import org.example.models.Location;
+import com.example.models.Category;
+import com.example.models.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,3 @@ public class KudaGOService {
         return result;
     }
 }
-
-
-
-
