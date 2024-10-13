@@ -1,4 +1,6 @@
 rootProject.name = "T-Homework-1"
+include("homework3")
 include("homework5")
-include("starter")
+include("homework8")
 include("homework9")
+include("starter")
