@@ -3,9 +3,14 @@ spring:
     name: homework8
   datasource:
     url: https://www.cbr.ru
+
+server:
+  port: 8081
+
 springdoc:
   swagger-ui:
     disable-swagger-default-url: true
+
 resilience4j:
   circuitbreaker:
     instances:

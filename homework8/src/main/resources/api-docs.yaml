@@ -3,7 +3,7 @@ info:
   title: OpenAPI definition
   version: v0
 servers:
-- url: http://localhost:8080
+- url: http://localhost:8081
   description: Generated server url
 paths:
   /convert:
@@ -25,7 +25,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ValuteInfo"
+                $ref: "#/components/schemas/CurrencyInfo"
         "400":
           description: Invalid ISO char code supplied
           content:
@@ -39,7 +39,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ConvertResponse"
         "404":
-          description: Valute not found
+          description: Currency not found
           content:
             '*/*':
               schema:
@@ -64,7 +64,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/Valute"
+                $ref: "#/components/schemas/Currency"
         "400":
           description: Invalid date or ISO char code supplied
           content:

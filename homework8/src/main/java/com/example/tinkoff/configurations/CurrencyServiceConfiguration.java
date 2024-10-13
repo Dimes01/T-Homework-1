@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-public class ValuteServiceConfiguartion {
+public class CurrencyServiceConfiguration {
     @Value("${spring.datasource.url}")
     private String baseUrl;
 

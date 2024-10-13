@@ -1,6 +1,15 @@
 spring:
   application:
     name: homework9
+  datasource:
+    url: https://kudago.com
+
+server:
+  port: 8080
+
+services:
+  currency-service:
+    host: http://localhost:8081
 
 executor:
   fixed-thread-pool-size: 3

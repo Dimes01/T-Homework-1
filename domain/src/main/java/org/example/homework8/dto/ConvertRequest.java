@@ -1,11 +1,11 @@
-package com.example.tinkoff.dto;
+package org.example.homework8.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 @Data
-public class ConvertResponse {
+public class ConvertRequest {
     @NotBlank
     private final String fromCurrency;
 
@@ -13,5 +13,5 @@ public class ConvertResponse {
     private final String toCurrency;
 
     @Positive
-    private final double convertedAmount;
+    private final double amount;
 }

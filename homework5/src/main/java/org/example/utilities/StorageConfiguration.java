@@ -1,7 +1,7 @@
 package org.example.utilities;
 
-import org.example.models.Category;
-import org.example.models.Location;
+import org.example.homework5.models.Category;
+import org.example.homework5.models.Location;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

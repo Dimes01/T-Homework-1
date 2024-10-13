@@ -1,11 +1,11 @@
 package com.example.tinkoff.controllers;
 
-import com.example.tinkoff.dto.ConvertRequest;
-import com.example.tinkoff.dto.ConvertResponse;
-import com.example.tinkoff.models.Rate;
-import com.example.tinkoff.models.Valute;
-import com.example.tinkoff.models.ValuteInfo;
-import com.example.tinkoff.services.ValuteService;
+import com.example.tinkoff.models.CurrencyInfo;
+import org.example.homework8.dto.ConvertRequest;
+import org.example.homework8.dto.ConvertResponse;
+import org.example.homework8.dto.Rate;
+import com.example.tinkoff.models.Currency;
+import com.example.tinkoff.services.CurrencyService;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.example.tinkoff.utilities.ServiceUnavailableException;
@@ -34,12 +34,12 @@ public class CurrenciesController {
     public record ErrorMessage(String message, int code) {}
 
     @Autowired
-    private ValuteService valuteService;
+    private CurrencyService currencyService;
 
     @Operation(summary = "Get currency rate by date", description = "Provide a date and ISO char code to look up a specific currency rate")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved currency rate",
-                    content = @Content(schema = @Schema(implementation = Valute.class))),
+                    content = @Content(schema = @Schema(implementation = Currency.class))),
             @ApiResponse(responseCode = "400", description = "Invalid date or ISO char code supplied"),
             @ApiResponse(responseCode = "404", description = "Currency not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -47,8 +47,8 @@ public class CurrenciesController {
     @GetMapping("/rates/{code}")
     public ResponseEntity<Rate> getCurrenciesRate(@NotBlank @PathVariable("code") String isoCharCode) throws JsonProcessingException, CurrencyNotExistException, CurrencyNotFoundException {
         var date = LocalDate.now();
-        valuteService.getValuteInfoByISOCharCode(isoCharCode);
-        var currency = valuteService.getCurrencyCursByDate(date, isoCharCode);
+        currencyService.getCurrencyInfoByISOCharCode(isoCharCode);
+        var currency = currencyService.getCurrencyCursByDate(date, isoCharCode);
         var rate = new Rate(currency.getCharCode(), currency.getVunitRate());
         return ResponseEntity.ok(rate);
     }
@@ -56,9 +56,9 @@ public class CurrenciesController {
     @Operation(summary = "Get valute info by ISO char code", description = "Provide an ISO char code to look up a specific valute info")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved valute info",
-                    content = @Content(schema = @Schema(implementation = ValuteInfo.class))),
+                    content = @Content(schema = @Schema(implementation = CurrencyInfo.class))),
             @ApiResponse(responseCode = "400", description = "Invalid ISO char code supplied"),
-            @ApiResponse(responseCode = "404", description = "Valute not found"),
+            @ApiResponse(responseCode = "404", description = "Currency not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/convert")
@@ -66,15 +66,19 @@ public class CurrenciesController {
         var fromCurrencyCode = convertRequest.getFromCurrency();
         var toCurrencyCode = convertRequest.getToCurrency();
 
-        valuteService.getValuteInfoByISOCharCode(fromCurrencyCode);
-        valuteService.getValuteInfoByISOCharCode(toCurrencyCode);
+        boolean fromCurrencyCodeIsRub = Objects.equals(fromCurrencyCode, "RUB");
+
+        if (!fromCurrencyCodeIsRub) currencyService.getCurrencyInfoByISOCharCode(fromCurrencyCode);
+        currencyService.getCurrencyInfoByISOCharCode(toCurrencyCode);
 
         var date = LocalDate.now();
 
-        var fromCurrency = valuteService.getCurrencyCursByDate(date, fromCurrencyCode);
-        var toCurrency = valuteService.getCurrencyCursByDate(date, toCurrencyCode);
+        Currency fromCurrency = fromCurrencyCodeIsRub
+                ? new Currency("R00001", "001", "RUB", 1, "Российский рубль", 1, 1)
+                : currencyService.getCurrencyCursByDate(date, fromCurrencyCode);
+        Currency toCurrency = currencyService.getCurrencyCursByDate(date, toCurrencyCode);
 
-        var amount = valuteService.calculateAmountBetweenCurrencies(fromCurrency, convertRequest.getAmount(), toCurrency);
+        var amount = currencyService.calculateAmountBetweenCurrencies(fromCurrency, convertRequest.getAmount(), toCurrency);
         return ResponseEntity.ok(new ConvertResponse(convertRequest.getFromCurrency(), convertRequest.getToCurrency(), amount));
     }
 

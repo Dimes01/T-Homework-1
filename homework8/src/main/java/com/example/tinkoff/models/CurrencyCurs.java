@@ -2,24 +2,24 @@ package com.example.tinkoff.models;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class AllValutes {
-    @JacksonXmlProperty(localName = "name", isAttribute = true)
-    @NotBlank
+public class CurrencyCurs {
+
+    @JacksonXmlProperty(isAttribute = true, localName = "Date")
+    private String date;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "name")
     private String name;
 
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "Item")
-    @Size(min = 1)
-    private List<ValuteInfo> valutes;
+    @JacksonXmlProperty(localName = "Currency")
+    private List<Currency> currencies;
 }

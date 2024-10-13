@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ValuteInfo {
+public class CurrencyInfo {
     @JacksonXmlProperty(localName = "ID", isAttribute = true)
     @NotBlank
     private String id;

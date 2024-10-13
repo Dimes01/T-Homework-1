@@ -1,57 +1,28 @@
 package com.example.services;
 
-import com.example.models.Category;
 import com.example.models.Event;
-import com.example.models.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriBuilder;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class KudaGOService {
-    private final RestClient restClient;
+    @Autowired
+    @Qualifier("kudago-service")
+    private RestClient restClient;
+
     private final Logger logger = LoggerFactory.getLogger(KudaGOService.class);
 
-    @Autowired
-    public KudaGOService(RestClient restClient) {
-        this.restClient = restClient;
-    }
 
-    public List<Category> getCategories() {
-        logger.info("Method 'getCategories' started");
-        Category[] categories = restClient.get()
-                .uri("/public-api/v1.4/place-categories/")
-                .retrieve()
-                .body(Category[].class);
-        List<Category> result = categories != null ? List.of(categories) : List.of();
-        if (result.isEmpty())
-            logger.warn("Method 'getCategories': response for place categories is null");
-        logger.info("Method 'getCategories' finished");
-        return result;
-    }
-
-    public List<Location> getLocations() {
-        logger.info("Method 'getLocations' started");
-        Location[] locations = restClient.get()
-                .uri("/public-api/v1.4/locations/?fields=slug,name,timezone,coords,language,currency")
-                .retrieve()
-                .body(Location[].class);
-        List<Location> result = locations != null ? List.of(locations) : List.of();
-        if (result.isEmpty())
-            logger.warn("Method 'getLocations': response for locations is null");
-        logger.info("Method 'getLocations' finished");
-        return result;
-    }
-
-    public List<Event> getEvents(Date from, Date to) {
+    public List<Event> getPossibleEvents(Date from, Date to) {
         logger.info("Method 'getEvents' started");
         int page = 1, page_size = 100;
         boolean has_next = true;
@@ -77,5 +48,11 @@ public class KudaGOService {
 
         logger.info("Method 'getEvents' finished");
         return result;
+    }
+
+    public List<Event> filterEventsByBudget(List<Event> events, double budget) {
+        return events.stream()
+                .filter(event -> event.getMinCost() <= budget)
+                .collect(Collectors.toList());
     }
 }

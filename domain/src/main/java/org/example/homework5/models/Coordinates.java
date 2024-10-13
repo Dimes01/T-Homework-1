@@ -1,4 +1,4 @@
-package com.example.models;
+package org.example.homework5.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
