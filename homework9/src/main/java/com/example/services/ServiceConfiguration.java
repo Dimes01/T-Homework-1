@@ -1,9 +1,12 @@
 package com.example.services;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+
+import java.util.concurrent.Semaphore;
 
 @Configuration
 class ServiceConfiguration {
@@ -13,6 +16,11 @@ class ServiceConfiguration {
     @Value("${services.currency-service.host}")
     private String urlCurrencyService;
 
+    @Getter
+    @Value("${services.currency-service.maxConcurrentRequests}")
+    private int maxConcurrentRequests;
+
+
     @Bean("kudago-service")
     public RestClient getRestClientKudaGo() {
         return RestClient.builder().baseUrl(urlKudaGoService).build();
@@ -21,5 +29,10 @@ class ServiceConfiguration {
     @Bean("currency-service")
     public RestClient getRestClientCurrencyService() {
         return RestClient.builder().baseUrl(urlCurrencyService).build();
+    }
+
+    @Bean("semaphore")
+    private Semaphore getSemaphore() {
+        return new Semaphore(maxConcurrentRequests);
     }
 }

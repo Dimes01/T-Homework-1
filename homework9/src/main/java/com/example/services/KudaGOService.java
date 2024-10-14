@@ -15,16 +15,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 @Service
 public class KudaGOService {
-    @Autowired
-    @Qualifier("kudago-service")
-    private RestClient restClient;
+
+    private final RestClient restClient;
+    private final Semaphore semaphore;
 
     private final Logger logger = LoggerFactory.getLogger(KudaGOService.class);
 
+    @Autowired
+    public KudaGOService(
+            @Qualifier("kudago-service") RestClient restClient,
+            @Qualifier("semaphore") Semaphore semaphore) {
+        this.restClient = restClient;
+        this.semaphore = semaphore;
+    }
 
     public List<Event> getPossibleEvents(Date from, Date to) {
         logger.info("Method 'getEvents' started");
@@ -62,19 +70,27 @@ public class KudaGOService {
         return events.filter(event -> event.getMinCost() <= budget);
     }
 
+
     private Mono<List<Event>> getEventsPageMono(RestClient.ResponseSpec responseSpec) {
         return Mono.just(List.of(Objects.requireNonNull(responseSpec.body(Event[].class))));
     }
 
-    private RestClient.ResponseSpec getEventsPage(int page, int page_size, Date from, Date to) {
-        return restClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/public-api/v1.4/events/")
-                        .queryParam("page", page)
-                        .queryParam("page_size", page_size)
-                        .queryParam("fields", "id,price,dates")
-                        .queryParam("actual_since", from.getTime())
-                        .queryParam("actual_until", to.getTime())
-                        .build())
-                .retrieve();
+    private RestClient.ResponseSpec getEventsPage(int page, int pageSize, Date from, Date to) {
+        try {
+            semaphore.acquire();
+            RestClient.ResponseSpec responseSpec = restClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/public-api/v1.4/events/")
+                            .queryParam("page", page)
+                            .queryParam("page_size", pageSize)
+                            .queryParam("fields", "id,price,dates")
+                            .queryParam("actual_since", from.getTime())
+                            .queryParam("actual_until", to.getTime())
+                            .build())
+                    .retrieve();
+            semaphore.release();
+            return responseSpec;
+        } catch (InterruptedException e) {
+            return null;
+        }
     }
 }

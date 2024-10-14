@@ -10,6 +10,8 @@ server:
 services:
   currency-service:
     host: http://localhost:8081
+  kudago-service:
+    max-concurrent-requests: 5
 
 executor:
   fixed-thread-pool-size: 3
