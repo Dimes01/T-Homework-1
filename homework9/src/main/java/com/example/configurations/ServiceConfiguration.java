@@ -1,4 +1,4 @@
-package com.example.services;
+package com.example.configurations;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ class ServiceConfiguration {
     private String urlCurrencyService;
 
     @Getter
-    @Value("${services.currency-service.maxConcurrentRequests}")
+    @Value("${services.currency-service.max-concurrent-requests}")
     private int maxConcurrentRequests;
 
 
@@ -32,7 +32,7 @@ class ServiceConfiguration {
     }
 
     @Bean("semaphore")
-    private Semaphore getSemaphore() {
+    public Semaphore getSemaphore() {
         return new Semaphore(maxConcurrentRequests);
     }
 }

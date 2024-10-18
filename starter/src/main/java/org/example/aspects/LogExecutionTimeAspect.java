@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
-@Component
 @Aspect
+@Component
 public class LogExecutionTimeAspect {
     private final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAspect.class);
 
-    @Around("@annotation(org.example.annotations.LogExecutionTime)")
+    @Around("@annotation(LogExecutionTime)")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
 

@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Flux;
@@ -54,31 +53,46 @@ public class KudaGOService {
     }
 
     public Flux<Event> getPossibleEventsFlux(Date from, Date to) {
-        return Flux.defer(() -> Flux.range(1, Integer.MAX_VALUE)
+        logger.info("Method 'getPossibleEventsFlux' started");
+        var result = Flux.defer(() -> Flux.range(1, Integer.MAX_VALUE)
                 .concatMap(page -> getEventsPageMono(getEventsPage(page, 100, from, to)))
                 .takeUntil(List::isEmpty)
                 .flatMap(Flux::fromIterable));
+        logger.info("Method 'getPossibleEventsFlux' finished");
+        return result;
+
     }
 
-    public List<Event> filterEventsByBudget(List<Event> events, double budget) {
-        return events.stream()
+    public List<Event> filterEventsByBudgetFlux(List<Event> events, double budget) {
+        logger.info("Method 'filterEventsByBudget' started");
+        var result = events.stream()
                 .filter(event -> event.getMinCost() <= budget)
                 .collect(Collectors.toList());
+        logger.info("Method 'filterEventsByBudget' started");
+        return result;
     }
 
-    public Flux<Event> filterEventsByBudget(Flux<Event> events, double budget) {
-        return events.filter(event -> event.getMinCost() <= budget);
+    public Flux<Event> filterEventsByBudgetFlux(Flux<Event> events, double budget) {
+        logger.info("Method 'filterEventsByBudgetFlux' started");
+        var result = events.filter(event -> event.getMinCost() <= budget);
+        logger.info("Method 'filterEventsByBudgetFlux' finished");
+        return result;
     }
 
 
     private Mono<List<Event>> getEventsPageMono(RestClient.ResponseSpec responseSpec) {
-        return Mono.just(List.of(Objects.requireNonNull(responseSpec.body(Event[].class))));
+        logger.info("Method 'getEventsPageMono' started");
+        var result = Mono.just(List.of(Objects.requireNonNull(responseSpec.body(Event[].class))));
+        logger.info("Method 'getEventsPageMono' finished");
+        return result;
     }
 
     private RestClient.ResponseSpec getEventsPage(int page, int pageSize, Date from, Date to) {
+        logger.info("Method 'getEventsPage' started");
+        RestClient.ResponseSpec responseSpec;
         try {
             semaphore.acquire();
-            RestClient.ResponseSpec responseSpec = restClient.get()
+            responseSpec = restClient.get()
                     .uri(uriBuilder -> uriBuilder.path("/public-api/v1.4/events/")
                             .queryParam("page", page)
                             .queryParam("page_size", pageSize)
@@ -88,9 +102,12 @@ public class KudaGOService {
                             .build())
                     .retrieve();
             semaphore.release();
-            return responseSpec;
+            logger.debug("Method 'getEventsPage': events is receive");
         } catch (InterruptedException e) {
-            return null;
+            logger.error("Method 'getEventsPage' interrupted by semaphore");
+            responseSpec = null;
         }
+        logger.info("Method 'getEventsPage' finished");
+        return responseSpec;
     }
 }
