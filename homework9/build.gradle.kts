@@ -12,18 +12,21 @@ repositories {
 	mavenCentral()
 }
 
-var wiremockVersion = "3.9.1"
-var junitVersion = "5.8.1"
-var jettyVersion = "11.0.24"
-var testcontainersVersion = "1.20.2"
+val wiremockVersion = project.properties["wiremockVersion"]
+val junitVersion = project.properties["junitVersion"]
+val jettyVersion = project.properties["jettyVersion"]
+val testcontainersVersion = project.properties["testcontainersVersion"]
+val mockitoVersion = project.properties["mockitoVersion"]
+val reactorVersion = project.properties["reactorVersion"]
 dependencies {
 	implementation(project(":starter"))
 	implementation(project(":domain"))
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-aop")
-	implementation("io.projectreactor:reactor-core:3.6.10")
+	implementation("io.projectreactor:reactor-core:$reactorVersion")
+	implementation("io.projectreactor:reactor-test:$reactorVersion")
 
-	testImplementation("org.mockito:mockito-core:5.13.0")
+	testImplementation("org.mockito:mockito-core:$mockitoVersion")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
 	testImplementation("org.wiremock:wiremock:$wiremockVersion")

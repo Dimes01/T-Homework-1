@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,7 +44,7 @@ public class KudaGOService {
             int pageForRequest = page;
             Event[] events = getEventsPage(pageForRequest, page_size, from, to).body(Event[].class);
             result.addAll(events != null ? List.of(events) : List.of());
-            has_next = !result.isEmpty();
+            has_next = events != null && events.length == page_size;
             if (!has_next)
                 logger.debug("Method 'getEvents': response for events on page {} is null", page);
             ++page;
@@ -63,7 +65,7 @@ public class KudaGOService {
 
     }
 
-    public List<Event> filterEventsByBudgetFlux(List<Event> events, double budget) {
+    public List<Event> filterEventsByBudget(List<Event> events, double budget) {
         logger.info("Method 'filterEventsByBudget' started");
         var result = events.stream()
                 .filter(event -> event.getMinCost() <= budget)
@@ -92,15 +94,14 @@ public class KudaGOService {
         RestClient.ResponseSpec responseSpec;
         try {
             semaphore.acquire();
-            responseSpec = restClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/public-api/v1.4/events/")
-                            .queryParam("page", page)
-                            .queryParam("page_size", pageSize)
-                            .queryParam("fields", "id,price,dates")
-                            .queryParam("actual_since", from.getTime())
-                            .queryParam("actual_until", to.getTime())
-                            .build())
-                    .retrieve();
+            URI uri = UriComponentsBuilder.fromPath("/public-api/v1.4/events/")
+                    .queryParam("page", page)
+                    .queryParam("page_size", pageSize)
+                    .queryParam("fields", "id,price,dates")
+                    .queryParam("actual_since", from.getTime())
+                    .queryParam("actual_until", to.getTime())
+                    .buildAndExpand().toUri();
+            responseSpec = restClient.get().uri(uri).retrieve();
             semaphore.release();
             logger.debug("Method 'getEventsPage': events is receive");
         } catch (InterruptedException e) {

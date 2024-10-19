@@ -78,7 +78,7 @@ public class EventController {
                 .body(ConvertResponse.class)
         );
         List<PossibleEvent> result = eventsFuture.thenCombine(convertFuture, (events, convert) ->
-                kudaGOService.filterEventsByBudgetFlux(events, convert.getConvertedAmount()).stream()
+                kudaGOService.filterEventsByBudget(events, convert.getConvertedAmount()).stream()
                         .map((event) -> new PossibleEvent(event.getName(), event.getDates(), event.getMinCost(), event.getMaxCost()))
                         .toList()).resultNow();
         return ResponseEntity.ok(result);
