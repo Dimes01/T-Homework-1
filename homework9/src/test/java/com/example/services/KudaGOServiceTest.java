@@ -21,8 +21,9 @@ import java.util.concurrent.Semaphore;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class KudaGOServiceTest {
@@ -158,5 +159,19 @@ class KudaGOServiceTest {
         StepVerifier.create(filteredEvents)
                 .expectNext(expectedEvents)
                 .verifyComplete();
+    }
+
+    @Test
+    public void testSemaphoreUsageInGetEventsPage() throws InterruptedException {
+        Date from = getCalendar(2024, Calendar.OCTOBER, 12).getTime();
+        Date to = getCalendar(2024, Calendar.OCTOBER, 13).getTime();
+
+        when(responseSpec.body(Event[].class)).thenReturn(events);
+
+        List<Event> events = kudaGOService.getPossibleEvents(from, to);
+
+        assertNotNull(events);
+        verify(semaphore, times(1)).acquire();
+        verify(semaphore, times(1)).release();
     }
 }

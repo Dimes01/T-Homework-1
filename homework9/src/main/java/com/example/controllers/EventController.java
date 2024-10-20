@@ -2,6 +2,8 @@ package com.example.controllers;
 
 import com.example.models.Event;
 import com.example.services.KudaGOService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.example.annotations.LogExecutionTime;
 import org.example.homework8.dto.ConvertRequest;
 import org.example.homework8.dto.ConvertResponse;
@@ -34,8 +36,8 @@ public class EventController {
 
     @GetMapping("/v1.1/events")
     public Mono<ResponseEntity<List<PossibleEvent>>> getPossibleEventsMono(
-            @RequestParam double budget,
-            @RequestParam String currency,
+            @RequestParam @NotNull double budget,
+            @RequestParam @NotBlank String currency,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dateTo
     ) {
@@ -63,8 +65,8 @@ public class EventController {
     @LogExecutionTime
     @GetMapping("/v1.0/events")
     public ResponseEntity<List<PossibleEvent>> getPossibleEvents(
-            @RequestParam double budget,
-            @RequestParam String currency,
+            @RequestParam @NotNull double budget,
+            @RequestParam @NotBlank String currency,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date dateTo
     ) {
