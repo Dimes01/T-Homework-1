@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: homework8
+  datasource:
+    url: https://www.cbr.ru
+
+server:
+  port: 8081
+
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      myCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        slowCallDurationThreshold: 4s
+        slowCallRateThreshold: 90
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        minimumNumberOfCalls: 10
+        ignoreExceptions:
+          - com.example.tinkoff.utilities.CurrencyNotExistException
+          - com.example.tinkoff.utilities.CurrencyNotFoundException

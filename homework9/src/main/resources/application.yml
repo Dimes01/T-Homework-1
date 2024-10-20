@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: homework9
+  datasource:
+    url: https://kudago.com
+
+server:
+  port: 8080
+
+services:
+  currency-service:
+    host: http://localhost:8081
+    max-concurrent-requests: 5
+  kudago-service:
+    max-concurrent-requests: 5
+
+executor:
+  fixed-thread-pool-size: 3
+  scheduled-thread-pool-size: 3
+  schedule-duration: PT1H
+
+logging:
+  level:
+    root: INFO
