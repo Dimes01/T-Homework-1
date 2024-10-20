@@ -1,7 +1,7 @@
 package services;
 
-import org.example.models.Category;
-import org.example.models.Location;
+import org.example.homework5.models.Category;
+import org.example.homework5.models.Location;
 import org.example.services.KudaGOService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

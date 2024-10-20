@@ -1,6 +1,6 @@
 package utilities;
 
-import org.example.models.Category;
+import org.example.homework5.models.Category;
 import org.example.utilities.Storage;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;

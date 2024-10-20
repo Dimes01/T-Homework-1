@@ -57,5 +57,3 @@ public class Storage<T> {
         return result;
     }
 }
-
-

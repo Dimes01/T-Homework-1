@@ -1,5 +1,7 @@
 package utilities;
 
+import org.example.homework5.models.Category;
+import org.example.homework5.models.Location;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,8 +11,6 @@ import org.springframework.web.client.RestClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 import org.wiremock.integrations.testcontainers.WireMockContainer;
-import org.example.models.Category;
-import org.example.models.Location;
 import org.example.services.KudaGOService;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Json;

@@ -12,28 +12,39 @@ repositories {
     mavenCentral()
 }
 
+val wiremockVersion = project.properties["wiremockVersion"]
+val junitVersion = project.properties["junitVersion"]
+val jettyVersion = project.properties["jettyVersion"]
+val testcontainersVersion = project.properties["testcontainersVersion"]
+val mockitoVersion = project.properties["mockitoVersion"]
 dependencies {
     implementation(project(":starter"))
     implementation(project(":domain"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.liquibase:liquibase-core")
 
-    testImplementation("org.mockito:mockito-core:5.13.0")
+    runtimeOnly("org.postgresql:postgresql")
+
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testImplementation("org.wiremock:wiremock:3.9.1")
-    testImplementation("org.testcontainers:testcontainers:1.20.2")
-    testImplementation("org.testcontainers:junit-jupiter:1.20.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testImplementation("org.wiremock:wiremock:$wiremockVersion")
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
+    testImplementation("org.testcontainers:postgresql")
 
-    testImplementation("org.wiremock:wiremock-jetty12:3.9.1")
-    testImplementation("org.wiremock:wiremock-standalone:3.9.1")
+    testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
+    testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")
     testImplementation("org.wiremock.integrations.testcontainers:wiremock-testcontainers-module:1.0-alpha-14")
-    testImplementation("org.eclipse.jetty:jetty-servlet:11.0.24")
-    testImplementation("org.eclipse.jetty:jetty-servlets:11.0.24")
-    testImplementation("org.eclipse.jetty:jetty-webapp:11.0.24")
-    testImplementation("org.eclipse.jetty.http2:http2-server:11.0.24")
+    testImplementation("org.eclipse.jetty:jetty-servlet:$jettyVersion")
+    testImplementation("org.eclipse.jetty:jetty-servlets:$jettyVersion")
+    testImplementation("org.eclipse.jetty:jetty-webapp:$jettyVersion")
+    testImplementation("org.eclipse.jetty.http2:http2-server:$jettyVersion")
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

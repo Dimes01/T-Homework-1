@@ -81,6 +81,3 @@ public class LocationController {
         return ResponseEntity.ok(deletingElem);
     }
 }
-
-
-
