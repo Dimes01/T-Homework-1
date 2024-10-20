@@ -7,9 +7,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication
 @EnableCaching
 public class Homework8Application {
-
 	public static void main(String[] args) {
 		SpringApplication.run(Homework8Application.class, args);
 	}
-
 }

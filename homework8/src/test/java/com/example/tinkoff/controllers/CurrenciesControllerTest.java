@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(locations = "classpath:application.yml")
 public class CurrenciesControllerTest {
 
     @Autowired
@@ -51,7 +53,7 @@ public class CurrenciesControllerTest {
     @ParameterizedTest
     @MethodSource("ratesParameters_allSituations")
     public void getCurrenciesRate(String code, ResultMatcher expectedResult) throws Exception {
-        mockMvc.perform(get("/rates/{0}", code))
+        mockMvc.perform(get("/currencies/rates/{0}", code))
                 .andExpect(expectedResult);
     }
 
@@ -72,7 +74,7 @@ public class CurrenciesControllerTest {
     @ParameterizedTest
     @MethodSource("convertParameters_allSituations")
     public void getCurrencyConvert(String content, ResultMatcher expectedResult) throws Exception {
-        mockMvc.perform(post("/convert")
+        mockMvc.perform(post("/currencies/convert")
                 .content(content)
                 .contentType(MediaType.APPLICATION_XML))
             .andExpect(expectedResult);

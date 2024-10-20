@@ -13,14 +13,16 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+
 
 @Service
 public class ValuteService {
@@ -81,7 +83,12 @@ public class ValuteService {
     }
 
     public double calculateAmountBetweenCurrencies(Valute currencyFrom, double amount, Valute currencyTo) {
-        return currencyTo.getValue() / (currencyFrom.getValue() * amount);
+        if (currencyFrom == null || currencyTo == null) return -1;
+        BigDecimal currencyFromValue = BigDecimal.valueOf(currencyFrom.getValue());
+        BigDecimal currencyToValue = BigDecimal.valueOf(currencyTo.getValue());
+        BigDecimal amountBigDecimal = BigDecimal.valueOf(amount);
+        BigDecimal result = currencyToValue.divide(currencyFromValue.multiply(amountBigDecimal), 2, RoundingMode.HALF_UP);
+        return result.doubleValue();
     }
 
     public Valute circuitFallbackCurrencyCursByDate(LocalDate date, String isoCharCode, Throwable throwable) {
