@@ -1,6 +1,6 @@
 package org.example.controllers;
 
-import org.example.models.Category;
+import org.example.homework5.models.Category;
 import org.example.utilities.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
