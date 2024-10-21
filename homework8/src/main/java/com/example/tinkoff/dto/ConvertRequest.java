@@ -6,12 +6,12 @@ import lombok.Data;
 
 @Data
 public class ConvertRequest {
-    @NotBlank
+    @NotBlank(message = "'From currency' must be specified")
     private final String fromCurrency;
 
-    @NotBlank
+    @NotBlank(message = "'To currency' must be specified")
     private final String toCurrency;
 
-    @Positive
+    @Positive(message = "'Amount must' be positive")
     private final double amount;
 }

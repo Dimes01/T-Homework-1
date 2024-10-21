@@ -15,15 +15,10 @@ public class ControllersAdvice {
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorMessage> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        String message = "";
-        if (Objects.equals(e.getParameter().getParameterName(), "amount"))
-            message = "Amount must be positive integer";
-        else
-            message = e.getParameter().getParameterName() + "must not be null or empty";
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content type", "application/xml");
         return new ResponseEntity<>(
-                new ErrorMessage(message, HttpStatus.BAD_REQUEST.value()),
+                new ErrorMessage(e.getMessage(), HttpStatus.BAD_REQUEST.value()),
                 headers,
                 HttpStatus.BAD_REQUEST
         );
