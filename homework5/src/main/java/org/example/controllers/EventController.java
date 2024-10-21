@@ -47,9 +47,9 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Event> postCreateEvent(@Valid @RequestBody Event event) {
         logger.info("Method 'postCreateEvent' is started");
-        if (placeService.getPlaceByIdWithEvents(event.getPlace().getId()) == null) {
+        if (placeService.getPlaceByIdWithEvents(event.getPlaceId().getId()) == null) {
             logger.warn("Method 'postCreateEvent': place not found");
-            throw new InvalidEntityException("Place not found with ID: " + event.getPlace().getId());
+            throw new InvalidEntityException("Place not found with ID: " + event.getPlaceId().getId());
         }
         Event createdEvent = placeService.createEvent(event);
         logger.info("Method 'postCreateEvent' is finished");
@@ -64,11 +64,11 @@ public class EventController {
             logger.warn("Method 'putUpdateEvent': not found element");
             throw new EntityNotFoundException("Event not found with ID: " + id);
         }
-        if (placeService.getPlaceByIdWithEvents(event.getPlace().getId()) == null) {
+        if (placeService.getPlaceByIdWithEvents(event.getPlaceId().getId()) == null) {
             logger.warn("Method 'putUpdateEvent': place not found");
-            throw new InvalidEntityException("Place not found with ID: " + event.getPlace().getId());
+            throw new InvalidEntityException("Place not found with ID: " + event.getPlaceId().getId());
         }
-        event.setId(id); // Set the ID to the event for updating
+        event.setId(id);
         Event updatedEvent = placeService.updateEvent(id, event);
         logger.info("Method 'putUpdateEvent' is finished");
         return ResponseEntity.ok(updatedEvent);

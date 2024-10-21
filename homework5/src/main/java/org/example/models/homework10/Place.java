@@ -25,6 +25,6 @@ public class Place {
     private String language;
     private String currency;
 
-    @OneToMany(mappedBy = "place", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "placeId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Event> events;
 }
