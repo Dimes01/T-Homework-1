@@ -15,11 +15,15 @@ import java.util.List;
 @Service
 public class PlaceService {
 
-    @Autowired
-    private PlaceRepository placeRepository;
+    private final PlaceRepository placeRepository;
+    private final EventRepository eventRepository;
 
     @Autowired
-    private EventRepository eventRepository;
+    public PlaceService(PlaceRepository placeRepository, EventRepository eventRepository) {
+        this.placeRepository = placeRepository;
+        this.eventRepository = eventRepository;
+    }
+
 
     public Place getPlaceByIdWithEvents(Long id) {
         return placeRepository.findByIdWithEvents(id);

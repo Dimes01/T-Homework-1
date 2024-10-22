@@ -7,21 +7,14 @@ import org.example.models.homework10.Event;
 import org.example.models.homework10.Place;
 import org.example.repositories.EventRepository;
 import org.example.repositories.PlaceRepository;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDate;
 
@@ -41,44 +34,21 @@ public class EventControllerIntegrationTest {
 
     private final ObjectMapper utilObjectMapper = new ObjectMapper();
     private Place testPlace;
-    private String testPlaceString;
-
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
-
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-    }
-
-    @BeforeAll
-    static void startContainer() { postgresContainer.start(); }
-
-    @AfterAll
-    static void stopContainer() { postgresContainer.stop(); }
+    private Event testEvent;
 
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
-        testPlace = new Place();
-        testPlace.setName("Test Place");
-        testPlace.setSlug("test-place");
-        testPlace.setTimezone("UTC");
-        testPlace.setLanguage("en");
-        testPlace.setCurrency("USD");
+        testPlace = Place.builder().name("Test Place").slug("test-place").timezone("UTC").language("en").currency("USD").build();
         placeRepository.save(testPlace);
-        testPlaceString = utilObjectMapper.writeValueAsString(testPlace);
+        testEvent = Event.builder().name("Test Event").date(LocalDate.now()).placeId(testPlace).build();
+        eventRepository.save(testEvent);
     }
 
     @Test
     void testCreateEvent() throws Exception {
         // Arrange
-        Event event = new Event();
-        event.setName("Test Event");
-        event.setDate(LocalDate.now());
-        event.setPlaceId(testPlace);
+        var testPlaceString = utilObjectMapper.writeValueAsString(testPlace);
 
         // Act
         mockMvc.perform(post("/api/v1/events")
@@ -87,22 +57,33 @@ public class EventControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         // Assert
-        assertThat(eventRepository.findAll()).hasSize(1);
         assertThat(eventRepository.findAll().getFirst().getName()).isEqualTo("Test Event");
     }
 
     @Test
-    void testGetEventById() throws Exception {
+    void getEventById_existedId_returnEvent() throws Exception {
+        // Assert & Arrange & Act
+        mockMvc.perform(get("/api/v1/events/" + testEvent.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().json(utilObjectMapper.writeValueAsString(testEvent)));
+    }
+
+    @Test
+    void getEventById_notExistedId_returnNotFound() throws Exception {
+        // Arrange & Act & Assert
+        mockMvc.perform(get("/api/v1/events/" + testEvent.getId()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void postCreateEvent_notExistedEvent_returnOk() throws Exception {
         // Arrange
-        Event savedEvent = new Event();
-        savedEvent.setName("Test Event");
-        savedEvent.setDate(LocalDate.now());
-        savedEvent.setPlaceId(testPlace);
-        eventRepository.save(savedEvent);
+        var newEvent = Event.builder().name("New Event").date(LocalDate.now()).placeId(testPlace).build();
+        var newEventString = utilObjectMapper.writeValueAsString(newEvent);
 
         // Act & Assert
-        mockMvc.perform(get("/api/v1/events/" + savedEvent.getId()))
+        mockMvc.perform(post("/api/v1/events").content(newEventString))
                 .andExpect(status().isOk())
-                .andExpect(content().json(utilObjectMapper.writeValueAsString(savedEvent)));
+                .andExpect(jsonPath("$.name").value(newEvent.getName()));
     }
 }

@@ -4,13 +4,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,6 +17,8 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
+
 @Entity
 @Table(name = "events")
 public class Event {
@@ -39,14 +39,3 @@ public class Event {
     private Place placeId;
 }
 
-class LocalDateDeserializer extends StdDeserializer<LocalDate> {
-    public LocalDateDeserializer() {
-        super(LocalDate.class);
-    }
-
-    @Override
-    public LocalDate deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, IOException {
-        String dateString = p.getValueAsString().replace(',', '.');
-        return LocalDate.parse(dateString);
-    }
-}
