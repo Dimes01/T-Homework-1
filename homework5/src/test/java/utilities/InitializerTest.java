@@ -5,6 +5,7 @@ import org.example.homework5.models.Location;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestClient;
@@ -16,6 +17,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Json;
 
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,6 +33,9 @@ class InitializerTest {
     };
     private static final String responseBodyCategoriesString = Json.write(responseBodyCategories);
     private static final String responseBodyLocationsString = Json.write(responseBodyLocations);
+
+    @Autowired
+    private static Semaphore semaphore;
     private static RestClient restClient;
     private static KudaGOService kudaGOService;
 
@@ -48,7 +53,7 @@ class InitializerTest {
         wireMockServer.start();
         var baseUrl = "http://" + wireMockServer.getHost() + ":" + wireMockServer.getFirstMappedPort();
         restClient = RestClient.builder().baseUrl(baseUrl).build();
-        kudaGOService = new KudaGOService(restClient);
+        kudaGOService = new KudaGOService(restClient, semaphore);
 
         WireMock.configureFor(wireMockServer.getHost(), wireMockServer.getFirstMappedPort());
 
