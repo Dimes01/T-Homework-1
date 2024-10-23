@@ -9,7 +9,7 @@ import java.util.concurrent.Semaphore;
 
 @Configuration
 class ServiceConfiguration {
-    @Value("${services.currency-service.max-concurrent-requests}")
+    @Value("${services.kudago-service.max-concurrent-requests}")
     private int maxConcurrentRequests;
 
     @Bean

@@ -3,9 +3,9 @@ spring:
     name: homework5
   datasource:
     name: postgres
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: root
-    password: root
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
