@@ -1,5 +1,7 @@
 package org.example.models.homework10;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +12,7 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "places")
 public class Place {
@@ -25,5 +27,6 @@ public class Place {
     private String currency;
 
     @OneToMany(mappedBy = "placeId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonBackReference
     private Set<Event> events;
 }

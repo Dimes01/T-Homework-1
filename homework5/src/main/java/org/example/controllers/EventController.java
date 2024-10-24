@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import org.example.exceptions.EntityNotFoundException;
 import org.example.exceptions.InvalidEntityException;
 import org.example.models.homework10.Event;
+import org.example.models.homework10.Place;
+import org.example.services.EventService;
 import org.example.services.PlaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +13,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/events")
 public class EventController {
+    private final EventService eventService;
     private final PlaceService placeService;
     private final Logger logger = LoggerFactory.getLogger(EventController.class);
 
     @Autowired
-    public EventController(PlaceService placeService) {
+    public EventController(EventService eventService, PlaceService placeService) {
+        this.eventService = eventService;
         this.placeService = placeService;
     }
 
@@ -42,6 +48,20 @@ public class EventController {
         }
         logger.info("Method 'getEventById' is finished");
         return ResponseEntity.ok(event);
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<Event>> getEventsByFilter(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long placeId,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate) {
+        List<Event> events = Collections.emptyList();
+        if (placeId != null) {
+            Place place = placeService.getPlaceByIdWithEvents(placeId);
+            events = eventService.findEvents(name, place, fromDate, toDate);
+        }
+        return ResponseEntity.ok(events);
     }
 
     @PostMapping
