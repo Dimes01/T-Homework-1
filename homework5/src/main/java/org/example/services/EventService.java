@@ -16,10 +16,10 @@ public class EventService {
     @Autowired
     private EventRepository eventRepository;
 
-    public List<Event> findEvents(String name, Place place, LocalDate fromDate, LocalDate toDate) {
+    public List<Event> findEvents(String name, Long placeId, LocalDate fromDate, LocalDate toDate) {
         Specification<Event> spec = Specification
                 .where(EventSpecification.byName(name))
-                .and(EventSpecification.byPlace(place.getId()))
+                .and(EventSpecification.byPlace(placeId))
                 .and(EventSpecification.byDateRange(fromDate, toDate));
         return eventRepository.findAll(spec);
     }

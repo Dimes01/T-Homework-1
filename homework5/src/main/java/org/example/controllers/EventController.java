@@ -56,13 +56,11 @@ public class EventController {
             @RequestParam(required = false) Long placeId,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate) {
-        List<Event> events = Collections.emptyList();
-        if (placeId != null) {
-            Place place = placeService.getPlaceByIdWithEvents(placeId);
-            events = eventService.findEvents(name, place, fromDate, toDate);
-        }
+        List<Event> events = eventService.findEvents(name, placeId, fromDate, toDate);
         return ResponseEntity.ok(events);
     }
+
+
 
     @PostMapping
     public ResponseEntity<Event> postCreateEvent(@Valid @RequestBody Event event) {

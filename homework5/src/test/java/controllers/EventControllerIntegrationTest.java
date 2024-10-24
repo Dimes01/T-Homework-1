@@ -72,6 +72,50 @@ public class EventControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    private static Stream<Arguments> events_getByFilter() {
+        return Stream.of(
+                Arguments.of(events.get(0).getName(), null, null, null, List.of(events.get(0))),
+                Arguments.of(events.get(1).getName(), null, null, null, List.of(events.get(1))),
+                Arguments.of(events.get(2).getName(), null, null, null, List.of(events.get(2))),
+                Arguments.of(events.get(3).getName(), null, null, null, List.of(events.get(3))),
+
+                Arguments.of(null, places.get(0).getName(), null, null, List.of(events.get(0), events.get(2))),
+                Arguments.of(null, places.get(1).getName(), null, null, List.of(events.get(1), events.get(3))),
+
+                Arguments.of(events.get(0).getName(), places.get(0).getName(), null, null, List.of(events.get(0))),
+                Arguments.of(events.get(0).getName(), places.get(1).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(1).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(1).getName(), places.get(1).getName(), null, null, List.of(events.get(1))),
+                Arguments.of(events.get(2).getName(), places.get(0).getName(), null, null, List.of(events.get(2))),
+                Arguments.of(events.get(2).getName(), places.get(1).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(3).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(3).getName(), places.get(1).getName(), null, null, List.of(events.get(3))),
+
+                Arguments.of(null, null, dates.get(0).toString(), null, List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
+                Arguments.of(null, null, dates.get(1).toString(), null, List.of(events.get(2), events.get(3))),
+                Arguments.of(null, null, null, dates.get(0).toString(), List.of(events.get(0), events.get(1))),
+                Arguments.of(null, null, null, dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
+                Arguments.of(null, null, dates.get(1).toString(), dates.get(0).toString(), Collections.emptyList()),
+                Arguments.of(null, null, dates.get(0).toString(), dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3)))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("events_getByFilter")
+    void getEventsByFilter(String name, String placeId, String fromDate, String toDate, List<Event> expectedEvents) throws Exception {
+        // Arrange & Act & Assert
+        String listString = mockMvc.perform(get("/api/v1/events/filter")
+                        .queryParam("name", name)
+                        .queryParam("placeId", placeId)
+                        .queryParam("fromDate", fromDate)
+                        .queryParam("toDate", toDate))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        List<Event> returnedEvents = Arrays.stream(utilObjectMapper.readValue(listString, Event[].class)).toList();
+        Assertions.assertEquals(expectedEvents, returnedEvents);
+    }
+
+
     private static Stream<Arguments> events_create_goodSituations() {
         var testPlace = places.getFirst();
         var testEvent = events.getFirst();

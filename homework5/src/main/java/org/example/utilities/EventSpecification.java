@@ -9,7 +9,7 @@ public class EventSpecification {
 
     public static Specification<Event> byName(String name) {
         return (root, query, criteriaBuilder) -> {
-            if (name == null || name.isEmpty()) {
+            if (name == null) {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.equal(root.get("name"), name);
