@@ -11,25 +11,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(classes = Homework5Application.class)
@@ -38,46 +32,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class EventControllerIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
-    @Autowired private static EventRepository eventRepository;
-    @Autowired private static PlaceRepository placeRepository;
-
-    @Value("{spring.datasource.url}")
-    private static String databaseName;
-
-    @Value("{spring.datasource.username}")
-    private static String username;
-
-    @Value("{spring.datasource.password}")
-    private static String password;
+    @Autowired private EventRepository eventRepository;
+    @Autowired private PlaceRepository placeRepository;
 
     private final ObjectMapper utilObjectMapper = new ObjectMapper();
 
     private static final List<LocalDate> dates = List.of(LocalDate.parse("2024-10-23"), LocalDate.parse("2024-10-24"));
-    private static final List<Place> places = List.of(
+    private static List<Place> places = List.of(
             Place.builder().name("Place1").slug("place1").timezone("UTC").language("en").currency("USD").build(),
             Place.builder().name("Place2").slug("place2").timezone("UTC").language("en").currency("USD").build());
-    private static final List<Event> events = new LinkedList<>();
-
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
-            .withDatabaseName(databaseName)
-            .withUsername(username)
-            .withPassword(password);
-
-    @DynamicPropertySource
-    private static void properties(final DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-    }
-
-    @BeforeAll
-    public static void startContainer() {
-        postgresContainer.start();
-    }
-
-    @AfterAll
-    public static void stopContainer() {
-        postgresContainer.stop();
-    }
+    private static List<Event> events = List.of(
+            Event.builder().name("Event11").date(dates.get(0)).placeId(places.get(0)).build(),
+            Event.builder().name("Event12").date(dates.get(0)).placeId(places.get(1)).build(),
+            Event.builder().name("Event21").date(dates.get(1)).placeId(places.get(0)).build(),
+            Event.builder().name("Event22").date(dates.get(1)).placeId(places.get(1)).build()
+    );
 
     @BeforeEach
     void setUp() {
@@ -145,46 +114,66 @@ public class EventControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private static Stream<Arguments> events_getByFilter() {
+    private static Stream<Arguments> events_update_goodSituations() {
+        var newEvent = events.getFirst();
+        newEvent = Event.builder().name("New Event").date(newEvent.getDate()).placeId(newEvent.getPlaceId()).build();
         return Stream.of(
-                Arguments.of(events.get(0).getName(), null, null, null, List.of(events.get(0))),
-                Arguments.of(events.get(1).getName(), null, null, null, List.of(events.get(1))),
-                Arguments.of(events.get(2).getName(), null, null, null, List.of(events.get(2))),
-                Arguments.of(events.get(3).getName(), null, null, null, List.of(events.get(3))),
-
-                Arguments.of(null, places.get(0).getName(), null, null, List.of(events.get(0), events.get(2))),
-                Arguments.of(null, places.get(1).getName(), null, null, List.of(events.get(1), events.get(3))),
-
-                Arguments.of(events.get(0).getName(), places.get(0).getName(), null, null, List.of(events.get(0))),
-                Arguments.of(events.get(0).getName(), places.get(1).getName(), null, null, Collections.emptyList()),
-                Arguments.of(events.get(1).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
-                Arguments.of(events.get(1).getName(), places.get(1).getName(), null, null, List.of(events.get(1))),
-                Arguments.of(events.get(2).getName(), places.get(0).getName(), null, null, List.of(events.get(2))),
-                Arguments.of(events.get(2).getName(), places.get(1).getName(), null, null, Collections.emptyList()),
-                Arguments.of(events.get(3).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
-                Arguments.of(events.get(3).getName(), places.get(1).getName(), null, null, List.of(events.get(3))),
-
-                Arguments.of(null, null, dates.get(0).toString(), null, List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
-                Arguments.of(null, null, dates.get(1).toString(), null, List.of(events.get(2), events.get(3))),
-                Arguments.of(null, null, null, dates.get(0).toString(), List.of(events.get(0), events.get(1))),
-                Arguments.of(null, null, null, dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
-                Arguments.of(null, null, dates.get(1).toString(), dates.get(0).toString(), Collections.emptyList()),
-                Arguments.of(null, null, dates.get(0).toString(), dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3)))
+                Arguments.of(newEvent),
+                Arguments.of(events.getFirst())
         );
     }
 
     @ParameterizedTest
-    @MethodSource("events_getByFilter")
-    void getEventsByFilter(String name, String placeId, String fromDate, String toDate, List<Event> expectedEvents) throws Exception {
-        // Arrange & Act & Assert
-        String listString = mockMvc.perform(get("/api/v1/events/filter")
-                        .queryParam("name", name)
-                        .queryParam("placeId", placeId)
-                        .queryParam("fromDate", fromDate)
-                        .queryParam("toDate", toDate))
+    @MethodSource("events_update_goodSituations")
+    void putUpdateEvent_goodSituations(Event newEvent) throws Exception {
+        var eventString = utilObjectMapper.writeValueAsString(newEvent);
+
+        var result = mockMvc.perform(put("/api/v1/events/" + newEvent.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventString))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        List<Event> returnedEvents = Arrays.stream(utilObjectMapper.readValue(listString, Event[].class)).toList();
-        Assertions.assertEquals(expectedEvents, returnedEvents);
+        Event returnedEvent = utilObjectMapper.readValue(result, Event.class);
+        Event savedEvent = eventRepository.findById(returnedEvent.getId()).orElseThrow();
+        Assertions.assertEquals(returnedEvent.getId(), savedEvent.getId());
+    }
+
+    private static Stream<Arguments> events_update_badSituations() {
+        var newEvent1 = events.getFirst();
+        newEvent1 = Event.builder().id(-1L).name(newEvent1.getName()).date(newEvent1.getDate()).placeId(newEvent1.getPlaceId()).build();
+        var notExistedPlace = Place.builder().id(-1L).name("Not Existed Place").slug("not-existed-place").timezone("UTC").language("en").currency("USD").build();
+        var newEvent2 = Event.builder().name(newEvent1.getName()).date(newEvent1.getDate()).placeId(notExistedPlace).build();
+        return Stream.of(
+                Arguments.of(newEvent1, status().isNotFound()),
+                Arguments.of(newEvent2, status().isBadRequest())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("events_update_badSituations")
+    void putUpdateEvent_badSituations(Event newEvent, ResultMatcher matcher) throws Exception {
+        var eventString = utilObjectMapper.writeValueAsString(newEvent);
+
+        mockMvc.perform(put("/api/v1/events/" + newEvent.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventString))
+                .andExpect(matcher);
+    }
+
+    @Test
+    void deleteEvent_goodSituations() throws Exception {
+        // Arrange
+        var event = events.getFirst();
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/events/" + event.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteEvent_badSituations() throws Exception {
+        // Assert & Act & Assert
+        mockMvc.perform(delete("/api/v1/events/-1"))
+                .andExpect(status().isNotFound());
     }
 }

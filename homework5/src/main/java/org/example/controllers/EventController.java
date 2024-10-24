@@ -104,6 +104,6 @@ public class EventController {
         }
         placeService.deleteEvent(id);
         logger.info("Method 'deleteEvent' is finished");
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }
