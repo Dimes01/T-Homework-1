@@ -72,20 +72,17 @@ public class EventControllerIntegrationTest {
     @BeforeAll
     public static void startContainer() {
         postgresContainer.start();
-
-        places.forEach(placeRepository::save);
-        for (int i = 0; i < dates.size(); ++i) {
-            for (int j = 0; j < places.size(); ++j) {
-                var event = Event.builder().name("Event " + (i + 1) + (j + 1)).date(dates.get(i)).placeId(places.get(j)).build();
-                events.add(event);
-                eventRepository.save(event);
-            }
-        }
     }
 
     @AfterAll
     public static void stopContainer() {
         postgresContainer.stop();
+    }
+
+    @BeforeEach
+    void setUp() {
+        placeRepository.saveAll(places);
+        eventRepository.saveAll(events);
     }
 
     @Test
@@ -149,81 +146,31 @@ public class EventControllerIntegrationTest {
     }
 
     private static Stream<Arguments> events_getByFilter() {
-        List<Arguments> arguments = new LinkedList<>();
-        arguments.add(Arguments.of(null, null, null, null, Collections.emptyList()));
+        return Stream.of(
+                Arguments.of(events.get(0).getName(), null, null, null, List.of(events.get(0))),
+                Arguments.of(events.get(1).getName(), null, null, null, List.of(events.get(1))),
+                Arguments.of(events.get(2).getName(), null, null, null, List.of(events.get(2))),
+                Arguments.of(events.get(3).getName(), null, null, null, List.of(events.get(3))),
 
-        // Проверка на поиск по названию события
-        for (Event event : events) {
-            arguments.add(Arguments.of(event.getName(), null, null, null, List.of(event)));
-        }
+                Arguments.of(null, places.get(0).getName(), null, null, List.of(events.get(0), events.get(2))),
+                Arguments.of(null, places.get(1).getName(), null, null, List.of(events.get(1), events.get(3))),
 
-        // Проверка на поиск по локации события
-        for (Place place : places) {
-            var currentPlaceId = place.getId();
-            List<Event> expectedEvent = events.stream().filter(e -> {
-                var eventPlaceId = e.getPlaceId().getId();
-                return Objects.equals(eventPlaceId, currentPlaceId);
-            }).toList();
-            arguments.add(Arguments.of(null, place.getName(), null, null, expectedEvent));
-        }
+                Arguments.of(events.get(0).getName(), places.get(0).getName(), null, null, List.of(events.get(0))),
+                Arguments.of(events.get(0).getName(), places.get(1).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(1).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(1).getName(), places.get(1).getName(), null, null, List.of(events.get(1))),
+                Arguments.of(events.get(2).getName(), places.get(0).getName(), null, null, List.of(events.get(2))),
+                Arguments.of(events.get(2).getName(), places.get(1).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(3).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
+                Arguments.of(events.get(3).getName(), places.get(1).getName(), null, null, List.of(events.get(3))),
 
-        // Проверка на поиск по дате начала события
-        for (LocalDate currentDate : dates) {
-            List<Event> expectedEvent = events.stream().filter(event -> {
-                var eventDate = event.getDate();
-                return eventDate.isAfter(currentDate) || eventDate.isEqual(currentDate);
-            }).toList();
-            arguments.add(Arguments.of(null, null, currentDate, null, expectedEvent));
-        }
-
-        // Проверка на поиск по дате окончания события
-        for (LocalDate currentDate : dates) {
-            List<Event> expectedEvent = events.stream().filter(event -> {
-                var eventDate = event.getDate();
-                return eventDate.isBefore(currentDate) || eventDate.isEqual(currentDate);
-            }).toList();
-            arguments.add(Arguments.of(null, null, null, currentDate, expectedEvent));
-        }
-
-//        return Stream.of(
-//                Arguments.of(event11.getName(), place1.getName(), null, null, List.of(event11)),
-//                Arguments.of(event11.getName(), place2.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event12.getName(), place1.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event12.getName(), place2.getName(), null, null, List.of(event12)),
-//                Arguments.of(event21.getName(), place1.getName(), null, null, List.of(event21)),
-//                Arguments.of(event21.getName(), place2.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event22.getName(), place1.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event22.getName(), place2.getName(), null, null, List.of(event22)),
-//
-//                Arguments.of(null, null, date2.toString(), date1.toString(), Collections.emptyList()),
-//                Arguments.of(null, null, date1.toString(), date2.toString(), List.of(event11, event12, event21, event22))
-//        );
-        return arguments.stream();
-//        return Stream.of(
-//                Arguments.of(event11.getName(), null, null, null, List.of(event11)),
-//                Arguments.of(event12.getName(), null, null, null, List.of(event12)),
-//                Arguments.of(event21.getName(), null, null, null, List.of(event21)),
-//                Arguments.of(event22.getName(), null, null, null, List.of(event22)),
-//
-//                Arguments.of(null, place1.getName(), null, null, List.of(event11, event21)),
-//                Arguments.of(null, place2.getName(), null, null, List.of(event12, event22)),
-//
-//                Arguments.of(event11.getName(), place1.getName(), null, null, List.of(event11)),
-//                Arguments.of(event11.getName(), place2.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event12.getName(), place1.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event12.getName(), place2.getName(), null, null, List.of(event12)),
-//                Arguments.of(event21.getName(), place1.getName(), null, null, List.of(event21)),
-//                Arguments.of(event21.getName(), place2.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event22.getName(), place1.getName(), null, null, Collections.emptyList()),
-//                Arguments.of(event22.getName(), place2.getName(), null, null, List.of(event22)),
-//
-//                Arguments.of(null, null, date1.toString(), null, List.of(event11, event12, event21, event22)),
-//                Arguments.of(null, null, date2.toString(), null, List.of(event21, event22)),
-//                Arguments.of(null, null, null, date1.toString(), List.of(event11, event12)),
-//                Arguments.of(null, null, null, date2.toString(), List.of(event11, event12, event21, event22)),
-//                Arguments.of(null, null, date2.toString(), date1.toString(), Collections.emptyList()),
-//                Arguments.of(null, null, date1.toString(), date2.toString(), List.of(event11, event12, event21, event22))
-//        );
+                Arguments.of(null, null, dates.get(0).toString(), null, List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
+                Arguments.of(null, null, dates.get(1).toString(), null, List.of(events.get(2), events.get(3))),
+                Arguments.of(null, null, null, dates.get(0).toString(), List.of(events.get(0), events.get(1))),
+                Arguments.of(null, null, null, dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
+                Arguments.of(null, null, dates.get(1).toString(), dates.get(0).toString(), Collections.emptyList()),
+                Arguments.of(null, null, dates.get(0).toString(), dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3)))
+        );
     }
 
     @ParameterizedTest
