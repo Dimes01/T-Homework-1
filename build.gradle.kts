@@ -1,5 +1,8 @@
 plugins {
     id("java")
+    id("org.springframework.boot") version "3.3.4"
+    id("io.spring.dependency-management") version "1.1.6"
+    id("jacoco")
 }
 
 group = "org.example"
@@ -9,18 +12,34 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    compileOnly("org.projectlombok:lombok:1.18.34")
-    annotationProcessor ("org.projectlombok:lombok:1.18.34")
+val lombokVersion = project.properties["lombokVersion"]
+val mockitoVersion = project.properties["mockitoVersion"]
+val junitVersion = project.properties["junitVersion"]
+val logbackVersion = project.properties["logbackVersion"]
+val slf4jVersion = project.properties["slf4jVersion"]
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "org.springframework.boot")
+    apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "jacoco")
 
-    implementation("org.slf4j:slf4j-api:2.0.16")
-    implementation("ch.qos.logback:logback-classic:1.5.7")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2")
-    testImplementation("org.mockito:mockito-core:5.13.0")
+    dependencies {
+        compileOnly("org.projectlombok:lombok:$lombokVersion")
+        annotationProcessor ("org.projectlombok:lombok:$lombokVersion")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+        implementation("org.springframework.boot:spring-boot-starter-validation")
+
+        implementation("org.slf4j:slf4j-api:$slf4jVersion")
+        implementation("ch.qos.logback:logback-classic:$logbackVersion")
+
+        implementation("com.fasterxml.jackson.core:jackson-databind")
+        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
+
+        testImplementation("org.mockito:mockito-core:$mockitoVersion")
+
+        testImplementation(platform("org.junit:junit-bom:$junitVersion"))
+        testImplementation("org.junit.jupiter:junit-jupiter")
+    }
 }
 
 tasks.test {
