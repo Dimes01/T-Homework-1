@@ -4,7 +4,12 @@ import org.example.models.lesson3.CustomLinkedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -127,5 +132,76 @@ public class CustomLinkedListTest {
         assertTrue(list.contains(1));
         assertTrue(list.contains(2));
         assertFalse(list.contains(3));
+    }
+
+    // ---------- Итератор ----------------------------------------------------------------------
+
+    private void initForIteratorTests() {
+        list.addAll(Arrays.asList(1, 2, 3));
+    }
+
+    @Test
+    void hasNext_allSituations() {
+        // Arrange
+        initForIteratorTests();
+        var iterator = list.iterator();
+
+        // Act & Assert
+        // Good situations
+        for (int i = 0; i < list.size(); ++i) {
+            assertTrue(iterator.hasNext());
+            iterator.next();
+        }
+        // Bad situation
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    void next_allSituations() {
+        // Arrange & Act
+        initForIteratorTests();
+        var iterator = list.iterator();
+
+        // Assert
+        // Good situations
+        for (int i = 0; i < list.size(); ++i) {
+            assertEquals(list.get(i), iterator.next());
+        }
+        // Bad situations
+        assertThrows(NoSuchElementException.class, iterator::next);
+    }
+
+    @Test
+    void forEachRemaining_notEmptyIterator() {
+        // Arrange
+        initForIteratorTests();
+        var iterator = list.iterator();
+
+        // Act
+        // Пропуск первого элемента
+        iterator.next();
+
+        // Сохранение оставшихся элементов с помощью forEachRemaining
+        List<Integer> remainingElements = new ArrayList<>();
+        Consumer<Integer> consumer = remainingElements::add;
+        iterator.forEachRemaining(consumer);
+
+        // Assert
+        assertEquals(List.of(2, 3), remainingElements);
+    }
+
+    @Test
+    void forEachRemaining_emptyIterator() {
+        // Arrange
+        initForIteratorTests();
+        var emptyList = new CustomLinkedList<Integer>();
+        var iterator = emptyList.iterator();
+        List<Integer> elements = new ArrayList<>();
+
+        // Act
+        iterator.forEachRemaining(elements::add);
+
+        // Assert
+        assertTrue(elements.isEmpty());
     }
 }
