@@ -1,9 +1,9 @@
 package com.example.tinkoff.controllers;
 
 import com.example.tinkoff.configurations.XmlMapperConfiguration;
-import com.example.tinkoff.dto.ConvertRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.example.homework8.dto.ConvertRequest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,7 +34,7 @@ public class CurrenciesControllerTest {
 
     private static final XmlMapper utilXmlMapper = XmlMapperConfiguration.xmlMapper();
 
-    // К моменту написания комментария CircuitBreaker в ValuteService перехватывает исключения CurrencyNotExistException
+    // К моменту написания комментария CircuitBreaker в CurrencyService перехватывает исключения CurrencyNotExistException
     // и CurrencyNotFoundException, хотя в конфиге в application.yml они вроде как исключены (поле ignoreExceptions).
     // Из-за этого в контроллере срабатывает неверный ExceptionHandler и поэтому только первый тест с корректными
     // данными проходит. У меня только 2 мысли на данный момент:
