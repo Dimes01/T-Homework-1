@@ -1,6 +1,6 @@
 package org.example.interfaces;
 
 public abstract class Initializer {
-    Command initializeCategory;
-    Command initializeLocation;
+    public Command initializeCategory;
+    public Command initializeLocation;
 }
