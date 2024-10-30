@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class InitializerTest {
+class InitializerImplTest {
     private static final Category[] responseBodyCategories = new Category[] {
             new Category(1L, "cat1", "category1"),
             new Category(2L, "cat2", "category2"),
