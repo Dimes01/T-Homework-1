@@ -1,5 +1,6 @@
 package org.example.utilities;
 
+import org.example.interfaces.DataObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class Storage<T> {
+public class Storage<T> implements DataObserver<T> {
     private final ConcurrentHashMap<Long, T> storage = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(Storage.class);
 
@@ -55,5 +56,12 @@ public class Storage<T> {
             logger.debug("Method 'delete': deleted entity with id({})", id);
         logger.info("Method 'delete': finished");
         return result;
+    }
+
+    @Override
+    public void updateData(Long id, T data) {
+        logger.info("Method 'update' from observer: started");
+        save(id, data);
+        logger.info("Method 'update' from observer: finished");
     }
 }
