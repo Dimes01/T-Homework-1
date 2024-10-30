@@ -1,6 +1,5 @@
 package org.example.utilities;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.example.annotations.LogExecutionTime;
 import org.example.homework5.models.Category;
@@ -10,13 +9,10 @@ import org.example.interfaces.DataSubject;
 import org.example.services.KudaGOService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,27 +21,13 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class Initializer implements DataSubject<Object> {
     private final KudaGOService kudaGOService;
-    private final Storage<Category> categoryStorage;
-    private final Storage<Location> locationStorage;
+    private final ExecutorService fixedThreadPool;
+    private final ScheduledExecutorService scheduledThreadPool;
 
     private final List<DataObserver<Object>> observers = new CopyOnWriteArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(Initializer.class);
     private final AtomicLong idGenerator = new AtomicLong(1);
 
-    @Qualifier("fixedThreadPool")
-    private final ExecutorService fixedThreadPool;
-
-    @Qualifier("scheduledThreadPool")
-    private final ScheduledExecutorService scheduledThreadPool;
-
-    @Value("${executor.schedule-duration}")
-    private final Duration scheduleDuration;
-
-    @PostConstruct
-    public void init() {
-        addObserver(categoryStorage);
-        addObserver(locationStorage);
-    }
 
     @LogExecutionTime
     @EventListener(ContextRefreshedEvent.class)

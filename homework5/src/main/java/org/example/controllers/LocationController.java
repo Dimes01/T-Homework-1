@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.homework5.models.Location;
+import org.example.utilities.Snapshot;
 import org.example.utilities.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,5 +80,17 @@ public class LocationController {
         }
         logger.info("Method 'deleteLocation' is finished");
         return ResponseEntity.ok(deletingElem);
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<Snapshot<Location>>> getLocationHistory(@PathVariable Long id) {
+        logger.info("Method 'getLocationHistory' is started");
+        List<Snapshot<Location>> history = storage.getHistory(id);
+        if (history.isEmpty()) {
+            logger.warn("Method 'getLocationHistory': no history found for element with id({})", id);
+            return ResponseEntity.badRequest().build();
+        }
+        logger.info("Method 'getLocationHistory' is finished");
+        return ResponseEntity.ok(history);
     }
 }
