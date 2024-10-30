@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.annotations.LogExecutionTime;
 import org.example.homework5.models.Category;
 import org.example.homework5.models.Location;
+import org.example.interfaces.AbstractInitializer;
 import org.example.interfaces.DataObserver;
 import org.example.interfaces.DataSubject;
 import org.example.services.KudaGOService;
@@ -19,14 +20,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @RequiredArgsConstructor
-public class Initializer implements DataSubject<Object> {
+public class Initializer extends AbstractInitializer implements DataSubject<Object> {
     private final KudaGOService kudaGOService;
     private final ExecutorService fixedThreadPool;
     private final ScheduledExecutorService scheduledThreadPool;
 
     private final List<DataObserver<Object>> observers = new CopyOnWriteArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(Initializer.class);
-    private final AtomicLong idGenerator = new AtomicLong(1);
 
 
     @LogExecutionTime
@@ -36,14 +36,12 @@ public class Initializer implements DataSubject<Object> {
 
         List<Callable<Void>> tasks = List.of(
                 () -> {
-                    List<Category> categories = kudaGOService.getCategories();
-                    categories.forEach(category -> notifyObservers(category.getId(), category));
+                    initializeCategory.execute();
                     logger.debug("Initializer: categories are loaded");
                     return null;
                 },
                 () -> {
-                    List<Location> locations = kudaGOService.getLocations();
-                    locations.forEach(location -> notifyObservers(idGenerator.getAndIncrement(), location));
+
                     logger.debug("Initializer: locations are loaded");
                     return null;
                 }

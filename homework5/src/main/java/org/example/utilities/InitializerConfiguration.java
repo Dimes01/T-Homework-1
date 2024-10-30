@@ -9,12 +9,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration
 public class InitializerConfiguration {
+    private final AtomicLong idGenerator = new AtomicLong(1);
 
     @Bean
     public Initializer initializer(
@@ -30,6 +33,15 @@ public class InitializerConfiguration {
                 fixedThreadPool,
                 scheduledThreadPool
         );
+
+        initializer.initializeCategory = () -> {
+            List<Category> categories = kudaGOService.getCategories();
+            categories.forEach(category -> initializer.notifyObservers(category.getId(), category));
+        };
+        initializer.initializeLocation = () -> {
+            List<Location> locations = kudaGOService.getLocations();
+            locations.forEach(location -> initializer.notifyObservers(idGenerator.getAndIncrement(), location));
+        }
 
         scheduledThreadPool.scheduleAtFixedRate(initializer::initializeData, 0, scheduleDuration.toHours(), TimeUnit.HOURS);
 
