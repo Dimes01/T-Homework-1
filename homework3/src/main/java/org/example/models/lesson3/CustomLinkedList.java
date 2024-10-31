@@ -1,5 +1,7 @@
 package org.example.models.lesson3;
 
+import org.example.interfaces.CustomIterator;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -19,8 +21,8 @@ public class CustomLinkedList<T> {
         addAll(coll);
     }
 
-    public Iterator<T> iterator() {
-        return new CustomIterator();
+    public CustomIterator<T> iterator() {
+        return new CustomIteratorImpl();
     }
 
     public long size() {
@@ -113,7 +115,7 @@ public class CustomLinkedList<T> {
         size--;
     }
 
-    private class CustomIterator implements Iterator<T> {
+    private class CustomIteratorImpl implements CustomIterator<T> {
         private ListNode<T> current = first;
 
         @Override
