@@ -57,7 +57,7 @@ class InitializerTest {
 
         WireMock.configureFor(wireMockServer.getHost(), wireMockServer.getFirstMappedPort());
 
-        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/place-categories"))
+        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/place-categories/"))
                 .withQueryParam("lang", WireMock.equalTo("ru"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -65,7 +65,7 @@ class InitializerTest {
                 )
         );
 
-        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/locations"))
+        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/locations/"))
                 .withQueryParam("lang", WireMock.equalTo("ru"))
                 .withQueryParam("fields", WireMock.equalTo("slug,name,timezone,coords,language,currency"))
                 .willReturn(WireMock.aResponse()

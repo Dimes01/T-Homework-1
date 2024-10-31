@@ -1,5 +1,6 @@
 package services;
 
+import org.example.Homework5Application;
 import org.example.homework5.models.Category;
 import org.example.homework5.models.Location;
 import org.example.services.KudaGOService;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@SpringBootTest(classes = Homework5Application.class)
 public class KudaGOServiceTest {
 
     @Mock private RestClient restClient;

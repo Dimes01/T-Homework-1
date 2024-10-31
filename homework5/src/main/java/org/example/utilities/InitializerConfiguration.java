@@ -41,7 +41,7 @@ public class InitializerConfiguration {
         initializer.initializeLocation = () -> {
             List<Location> locations = kudaGOService.getLocations();
             locations.forEach(location -> initializer.notifyObservers(idGenerator.getAndIncrement(), location));
-        }
+        };
 
         scheduledThreadPool.scheduleAtFixedRate(initializer::initializeData, 0, scheduleDuration.toHours(), TimeUnit.HOURS);
 

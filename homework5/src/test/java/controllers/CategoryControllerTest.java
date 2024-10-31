@@ -1,5 +1,6 @@
 package controllers;
 
+import org.example.Homework5Application;
 import org.example.controllers.CategoryController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test class for the {@link CategoryController}
  */
-@SpringBootTest
+@SpringBootTest(classes = Homework5Application.class)
 @AutoConfigureMockMvc
 public class CategoryControllerTest {
 

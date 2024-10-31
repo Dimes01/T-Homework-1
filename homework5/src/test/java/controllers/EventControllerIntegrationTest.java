@@ -1,6 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.example.Homework5Application;
 import org.example.models.homework10.Event;
 import org.example.models.homework10.Place;
@@ -37,22 +38,24 @@ public class EventControllerIntegrationTest {
 
     private final ObjectMapper utilObjectMapper = new ObjectMapper();
 
-    private static final List<LocalDate> dates = List.of(LocalDate.parse("2024-10-23"), LocalDate.parse("2024-10-24"));
-    private static List<Place> places = List.of(
+    private static final List<String> datesString = List.of("2024-10-23", "2024-10-24");
+    private static final List<LocalDate> dates = List.of(LocalDate.parse(datesString.get(0)), LocalDate.parse(datesString.get(1)));
+    private static final List<Place> places = List.of(
             Place.builder().name("Place1").slug("place1").timezone("UTC").language("en").currency("USD").build(),
             Place.builder().name("Place2").slug("place2").timezone("UTC").language("en").currency("USD").build());
-    private static List<Event> events = List.of(
+    private static final List<Event> events = List.of(
             Event.builder().name("Event11").date(dates.get(0)).placeId(places.get(0)).build(),
             Event.builder().name("Event12").date(dates.get(0)).placeId(places.get(1)).build(),
             Event.builder().name("Event21").date(dates.get(1)).placeId(places.get(0)).build(),
             Event.builder().name("Event22").date(dates.get(1)).placeId(places.get(1)).build()
     );
 
-    @BeforeEach
-    void setUp() {
+    @PostConstruct
+    void init() {
         placeRepository.saveAll(places);
         eventRepository.saveAll(events);
     }
+
 
     @Test
     void getEventById_existedId_returnEvent() throws Exception {
@@ -91,12 +94,12 @@ public class EventControllerIntegrationTest {
                 Arguments.of(events.get(3).getName(), places.get(0).getName(), null, null, Collections.emptyList()),
                 Arguments.of(events.get(3).getName(), places.get(1).getName(), null, null, List.of(events.get(3))),
 
-                Arguments.of(null, null, dates.get(0).toString(), null, List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
-                Arguments.of(null, null, dates.get(1).toString(), null, List.of(events.get(2), events.get(3))),
-                Arguments.of(null, null, null, dates.get(0).toString(), List.of(events.get(0), events.get(1))),
-                Arguments.of(null, null, null, dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
-                Arguments.of(null, null, dates.get(1).toString(), dates.get(0).toString(), Collections.emptyList()),
-                Arguments.of(null, null, dates.get(0).toString(), dates.get(1).toString(), List.of(events.get(0), events.get(1), events.get(2), events.get(3)))
+                Arguments.of(null, null, datesString.get(0), null, List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
+                Arguments.of(null, null, datesString.get(1), null, List.of(events.get(2), events.get(3))),
+                Arguments.of(null, null, null, datesString.get(0), List.of(events.get(0), events.get(1))),
+                Arguments.of(null, null, null, datesString.get(1), List.of(events.get(0), events.get(1), events.get(2), events.get(3))),
+                Arguments.of(null, null, datesString.get(1), datesString.get(0), Collections.emptyList()),
+                Arguments.of(null, null, datesString.get(0), datesString.get(1), List.of(events.get(0), events.get(1), events.get(2), events.get(3)))
         );
     }
 
@@ -112,7 +115,10 @@ public class EventControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         List<Event> returnedEvents = Arrays.stream(utilObjectMapper.readValue(listString, Event[].class)).toList();
-        Assertions.assertEquals(expectedEvents, returnedEvents);
+        Assertions.assertEquals(expectedEvents.size(), returnedEvents.size());
+        for (int i = 0; i < expectedEvents.size(); ++i) {
+            Assertions.assertEquals(expectedEvents.get(i), returnedEvents.get(i));
+        }
     }
 
 
