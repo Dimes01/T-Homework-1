@@ -41,7 +41,7 @@ public class Initializer extends AbstractInitializer implements DataSubject<Obje
                     return null;
                 },
                 () -> {
-
+                    initializeLocation.execute();
                     logger.debug("Initializer: locations are loaded");
                     return null;
                 }
