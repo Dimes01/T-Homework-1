@@ -91,7 +91,7 @@ public class CategoryControllerTest {
 
     @Test
     public void deleteCategory_notExistedId_return400() throws Exception {
-        mockMvc.perform(delete("/api/v1/places/categories/{0}", "1"))
+        mockMvc.perform(delete("/api/v1/places/categories/{0}", "-1"))
                 .andExpect(status().is4xxClientError());
     }
 }
