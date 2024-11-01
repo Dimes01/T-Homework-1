@@ -1,4 +1,4 @@
-package org.example.models.homework10;
+package org.example.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

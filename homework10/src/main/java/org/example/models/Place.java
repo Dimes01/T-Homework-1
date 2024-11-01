@@ -1,4 +1,4 @@
-package org.example.models.homework10;
+package org.example.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

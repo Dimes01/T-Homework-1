@@ -3,7 +3,8 @@ package org.example.controllers;
 import jakarta.validation.Valid;
 import org.example.exceptions.EntityNotFoundException;
 import org.example.exceptions.InvalidEntityException;
-import org.example.models.homework10.Event;
+import org.example.models.Event;
+import org.example.models.Place;
 import org.example.services.EventService;
 import org.example.services.PlaceService;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @RestController

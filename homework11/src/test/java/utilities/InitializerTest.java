@@ -19,6 +19,8 @@ import org.wiremock.integrations.testcontainers.WireMockContainer;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class InitializerTest {
     private static final Category[] responseBodyCategories = new Category[] {
             new Category(1L, "cat1", "category1"),
