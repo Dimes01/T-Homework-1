@@ -1,12 +1,8 @@
 spring:
   application:
-    name: homework10
+    name: homework5
   datasource:
-    name: postgres
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,11 +11,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
-    change-log: db.changelog/db.changelog-master.xml
-
-services:
-  kudago-service:
-    max-concurrent-requests: 5
+    change-log: homework5/src/test/resources/db.changelog/db.changelog-master.xml
 
 executor:
   fixed-thread-pool-size: 3

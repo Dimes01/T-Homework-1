@@ -2,7 +2,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.example.Homework10Application;
+import org.example.Homework13Application;
 import org.example.models.Event;
 import org.example.models.Place;
 import org.example.repositories.EventRepository;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(classes = Homework10Application.class)
+@SpringBootTest(classes = Homework13Application.class)
 @AutoConfigureMockMvc
 @Testcontainers
 public class EventControllerIntegrationTest {
