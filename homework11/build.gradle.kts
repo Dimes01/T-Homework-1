@@ -20,9 +20,14 @@ val mockitoVersion = project.properties["mockitoVersion"]
 dependencies {
     implementation(project(":starter"))
     implementation(project(":domain"))
-
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.liquibase:liquibase-core")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -30,6 +35,7 @@ dependencies {
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainersVersion")
+    testImplementation("org.testcontainers:postgresql")
 
     testImplementation("org.wiremock:wiremock-jetty12:$wiremockVersion")
     testImplementation("org.wiremock:wiremock-standalone:$wiremockVersion")

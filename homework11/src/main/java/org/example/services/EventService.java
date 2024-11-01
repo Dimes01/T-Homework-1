@@ -1,7 +1,6 @@
 package org.example.services;
 
 import org.example.models.homework10.Event;
-import org.example.models.homework10.Place;
 import org.example.repositories.EventRepository;
 import org.example.utilities.EventSpecification;
 import org.springframework.beans.factory.annotation.Autowired;

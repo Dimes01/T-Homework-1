@@ -2,7 +2,6 @@ package org.example.models.homework10;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Set;

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,19 +25,13 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(classes = Homework5Application.class)
 public class KudaGOServiceTest {
 
-    @Mock
-    private RestClient restClient;
+    @Mock private RestClient restClient;
+    @Mock private RequestHeadersUriSpec requestHeadersUriSpec;
+    @Mock private RestClient.RequestHeadersSpec requestHeadersSpec;
+    @Mock private RestClient.ResponseSpec responseSpec;
 
-    @Mock
-    private RequestHeadersUriSpec requestHeadersUriSpec;
-
-    @Mock
-    private RestClient.RequestHeadersSpec requestHeadersSpec;
-
-    @Mock
-    private RestClient.ResponseSpec responseSpec;
-
-    private final KudaGOService kudaGOService = new KudaGOService(restClient);
+    @InjectMocks
+    private KudaGOService kudaGOService;
 
     private static final Category[] expectedCategories = new Category[] {
             new Category(1L, "cat1", "category1"),
@@ -128,5 +123,6 @@ public class KudaGOServiceTest {
         assertThrows(RestClientException.class, () -> kudaGOService.getLocations());
     }
 }
+
 
 

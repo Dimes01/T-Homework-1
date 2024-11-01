@@ -1,28 +1,24 @@
 package utilities;
 
-import org.example.Homework5Application;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.Json;
 import org.example.homework5.models.Category;
 import org.example.homework5.models.Location;
+import org.example.services.KudaGOService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 import org.wiremock.integrations.testcontainers.WireMockContainer;
-import org.example.services.KudaGOService;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.Json;
 
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-@SpringBootTest(classes = Homework5Application.class)
 class InitializerTest {
     private static final Category[] responseBodyCategories = new Category[] {
             new Category(1L, "cat1", "category1"),
@@ -34,6 +30,9 @@ class InitializerTest {
     };
     private static final String responseBodyCategoriesString = Json.write(responseBodyCategories);
     private static final String responseBodyLocationsString = Json.write(responseBodyLocations);
+
+    @Autowired
+    private static Semaphore semaphore;
     private static RestClient restClient;
     private static KudaGOService kudaGOService;
 
@@ -51,11 +50,11 @@ class InitializerTest {
         wireMockServer.start();
         var baseUrl = "http://" + wireMockServer.getHost() + ":" + wireMockServer.getFirstMappedPort();
         restClient = RestClient.builder().baseUrl(baseUrl).build();
-        kudaGOService = new KudaGOService(restClient);
+        kudaGOService = new KudaGOService(restClient, semaphore);
 
         WireMock.configureFor(wireMockServer.getHost(), wireMockServer.getFirstMappedPort());
 
-        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/place-categories"))
+        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/place-categories/"))
                 .withQueryParam("lang", WireMock.equalTo("ru"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -63,7 +62,7 @@ class InitializerTest {
                 )
         );
 
-        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/locations"))
+        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo("/public-api/v1.4/locations/"))
                 .withQueryParam("lang", WireMock.equalTo("ru"))
                 .withQueryParam("fields", WireMock.equalTo("slug,name,timezone,coords,language,currency"))
                 .willReturn(WireMock.aResponse()
