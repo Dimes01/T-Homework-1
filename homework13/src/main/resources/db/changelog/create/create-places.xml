@@ -3,19 +3,26 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
     <changeSet id="2" author="Dmitriy">
-        <createTable tableName="events">
-            <column name="id" type="BIGINT" autoIncrement="true">
+        <dropTable tableName="places" cascadeConstraints="true"/>
+        <createTable tableName="places">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(255)">
+            <column name="slug" type="TEXT">
                 <constraints nullable="false"/>
             </column>
-            <column name="date" type="DATE">
+            <column name="name" type="TEXT">
                 <constraints nullable="false"/>
             </column>
-            <column name="place_id" type="BIGINT">
+            <column name="timezone" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="language" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="TEXT">
                 <constraints nullable="false"/>
             </column>
         </createTable>

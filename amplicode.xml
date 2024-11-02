@@ -8,4 +8,18 @@
       </database-info>
     </database-infos>
   </component>
+  <component name="AmplicodePersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit moduleName="T-Homework-1.homework10.main" name="Default">
+        <packages>
+          <package value="org.example" />
+        </packages>
+      </persistence-unit>
+      <persistence-unit moduleName="T-Homework-1.homework13.main" name="Default">
+        <packages>
+          <package value="org.example" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
 </project>
