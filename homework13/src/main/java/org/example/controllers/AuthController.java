@@ -1,8 +1,8 @@
 package org.example.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.example.entities.User;
 import org.example.models.RegistrationForm;
-import org.example.models.User;
 import org.example.repositories.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +16,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody RegistrationForm registrationForm) {
-        User user = registrationForm.createUser(passwordEncoder);
+        User user = registrationForm.createUser(passwordEncoder, "ROLE_USER");
         userRepository.save(user);
         return ResponseEntity.ok(user);
     }

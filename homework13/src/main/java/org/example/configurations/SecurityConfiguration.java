@@ -1,6 +1,7 @@
 package org.example.configurations;
 
-import org.example.models.User;
+import org.example.entities.User;
+import org.example.models.SecurityUser;
 import org.example.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +27,7 @@ public class SecurityConfiguration {
             User user = repository.findByUsername(username);
             if (user == null)
                 throw new UsernameNotFoundException(String.format("User %s not found", username));
-            return user;
+            return new SecurityUser(user);
         };
     }
 

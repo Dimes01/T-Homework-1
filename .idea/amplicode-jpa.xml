@@ -3,5 +3,6 @@
   <component name="AmplicodeJpaIdeaProjectConfig" ddlActionDbType="mysql">
     <option name="defaultUnitInitialized" value="true" />
     <option name="renamerInitialized" value="true" />
+    <option name="updateChangeLogPath" value="homework13/src/main/resources/db/changelog/db.changelog-master.xml" />
   </component>
 </project>

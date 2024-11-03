@@ -1,8 +1,8 @@
 package controllers;
 
 import org.example.Homework13Application;
+import org.example.entities.User;
 import org.example.models.RegistrationForm;
-import org.example.models.User;
 import org.example.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,7 @@ public class AuthControllerTest {
     @Test
     public void register() throws Exception {
         // Arrange & Act
+        userRepository.deleteAll();
         String responseString = mockMvc.perform(post("/register")
                 .content(registrationFormJson)
                 .contentType(MediaType.APPLICATION_JSON))
