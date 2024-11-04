@@ -7,7 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Data
 @AllArgsConstructor
-public class RegistrationForm {
+public class RegistrationRequest {
     private String username;
     private String password;
 

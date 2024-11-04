@@ -17,6 +17,11 @@ spring:
   liquibase:
     change-log: db/changelog/db.changelog-master.xml
 
+server:
+  servlet:
+    session:
+      timeout: 600s
+
 services:
   kudago-service:
     max-concurrent-requests: 5
