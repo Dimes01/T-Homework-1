@@ -3,10 +3,13 @@ package org.example.controllers;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.example.dto.PasswordResetConfirmRequest;
+import org.example.dto.PasswordResetRequest;
 import org.example.entities.User;
-import org.example.models.LoginRequest;
-import org.example.models.RegistrationRequest;
+import org.example.dto.LoginRequest;
+import org.example.dto.RegistrationRequest;
 import org.example.repositories.UserRepository;
+import org.example.services.PasswordResetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +27,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody RegistrationRequest registrationRequest) {
@@ -57,5 +61,33 @@ public class AuthController {
         }
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
+        User user = userRepository.findByUsername(request.getUsername());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        passwordResetService.sendConfirmationCode(user);
+        return ResponseEntity.ok("Confirmation code sent");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetConfirmRequest request) {
+        User user = userRepository.findByUsername(request.getUsername());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        if (!passwordResetService.validateConfirmationCode(user.getUsername(), request.getConfirmationCode())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid confirmation code");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        passwordResetService.removeConfirmationCode(user.getUsername());
+
+        return ResponseEntity.ok("Password reset successful");
     }
 }

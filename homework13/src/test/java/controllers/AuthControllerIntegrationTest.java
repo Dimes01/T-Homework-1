@@ -2,8 +2,8 @@ package controllers;
 
 import org.example.Homework13Application;
 import org.example.entities.User;
-import org.example.models.LoginRequest;
-import org.example.models.RegistrationRequest;
+import org.example.dto.LoginRequest;
+import org.example.dto.RegistrationRequest;
 import org.example.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
