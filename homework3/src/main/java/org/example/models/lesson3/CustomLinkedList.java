@@ -1,7 +1,12 @@
 package org.example.models.lesson3;
 
+import org.example.interfaces.CustomIterator;
+
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class CustomLinkedList<T> {
     private long size = 0;
@@ -14,6 +19,10 @@ public class CustomLinkedList<T> {
     public CustomLinkedList(Collection<? extends T> coll) {
         this();
         addAll(coll);
+    }
+
+    public CustomIterator<T> iterator() {
+        return new CustomIteratorImpl();
     }
 
     public long size() {
@@ -104,5 +113,32 @@ public class CustomLinkedList<T> {
             last = node.getPreviousNode();
         }
         size--;
+    }
+
+    private class CustomIteratorImpl implements CustomIterator<T> {
+        private ListNode<T> current = first;
+
+        @Override
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        @Override
+        public T next() {
+            if (current == null) {
+                throw new NoSuchElementException();
+            }
+            T value = current.getValue();
+            current = current.getNextNode();
+            return value;
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            while (current != null) {
+                action.accept(current.getValue());
+                current = current.getNextNode();
+            }
+        }
     }
 }

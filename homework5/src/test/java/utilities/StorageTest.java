@@ -59,7 +59,7 @@ public class StorageTest {
     }
 
 
-    private Stream<Arguments> update_goodAndBadSituations() {
+    private Stream<Arguments> update_Entity_goodAndBadSituations() {
         var newElem = new Category(1L, "newSlug1", "newName1");
         return Stream.of(
                 Arguments.of(new Category[] {}, 1, newElem, false),
@@ -69,14 +69,14 @@ public class StorageTest {
     }
 
     @ParameterizedTest
-    @MethodSource("update_goodAndBadSituations")
+    @MethodSource("update_Entity_goodAndBadSituations")
     public void update(Category[] elements, long id, Category newElem, boolean expected) {
         set_up(elements);
         assertEquals(expected, storage.update(id, newElem));
     }
 
 
-    private Stream<Arguments> delete_goodAndBadSituations() {
+    private Stream<Arguments> delete_Entity_goodAndBadSituations() {
         return Stream.of(
                 Arguments.of(new Category[] {}, 1, false),
                 Arguments.of(initElements, 0, false),
@@ -85,8 +85,8 @@ public class StorageTest {
     }
 
     @ParameterizedTest
-    @MethodSource("delete_goodAndBadSituations")
-    public void delete(Category[] elements, long id, boolean expected) {
+    @MethodSource("delete_Entity_goodAndBadSituations")
+    public void deleteEntity(Category[] elements, long id, boolean expected) {
         // Arrange
         set_up(elements);
         var expectedSizeAfter = expected ? elements.length - 1 : elements.length;

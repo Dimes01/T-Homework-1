@@ -1,5 +1,6 @@
 package controllers;
 
+import org.example.Homework5Application;
 import org.example.controllers.LocationController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test class for the {@link LocationController}
  */
-@SpringBootTest
+@SpringBootTest(classes = Homework5Application.class)
 @AutoConfigureMockMvc
 public class LocationControllerTest {
 
@@ -90,7 +91,7 @@ public class LocationControllerTest {
 
     @Test
     public void deleteLocation_notExistedId_return400() throws Exception {
-        mockMvc.perform(delete("/api/v1/locations/{0}", "1"))
+        mockMvc.perform(delete("/api/v1/locations/{0}", "-1"))
                 .andExpect(status().is4xxClientError());
     }
 }

@@ -18,12 +18,12 @@ public class ExecutorConfiguration {
     private int scheduledThreadPoolSize;
 
 
-    @Bean("fixedThreadPool")
+    @Bean("processingOfInitialize")
     public ExecutorService fixedThreadPool() {
         return Executors.newFixedThreadPool(fixedThreadPoolSize);
     }
 
-    @Bean("scheduledThreadPool")
+    @Bean("scheduleInitialize")
     public ScheduledExecutorService scheduledThreadPool() {
         return Executors.newScheduledThreadPool(scheduledThreadPoolSize);
     }
