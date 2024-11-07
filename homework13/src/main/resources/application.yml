@@ -23,7 +23,7 @@ spring:
 server:
   servlet:
     session:
-      timeout: 600s
+      timeout: 600
 
 executor:
   fixed-thread-pool-size: 3

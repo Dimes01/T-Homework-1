@@ -1,30 +1,64 @@
 package org.example.configurations;
 
-import org.example.entities.User;
-import org.example.models.SecurityUser;
-import org.example.repositories.UserRepository;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import org.example.services.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+import java.time.Duration;
+
 
 @Configuration
+@EnableWebSecurity
+@EnableJdbcHttpSession
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+    
+    @Value("${server.servlet.session.timeout}")
+    private int sessionTimeout;
+
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/register", "/login", "/password-reset/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(sess -> sess
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionFixation().migrateSession()
+            )
+            .logout(logout -> logout
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll())
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(Customizer.withDefaults());
+
+        return http.build();
     }
 
     @Bean
@@ -32,31 +66,11 @@ public class SecurityConfiguration {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService(UserRepository repository) {
-        return username -> {
-            User user = repository.findByUsername(username);
-            if (user == null)
-                throw new UsernameNotFoundException(String.format("User %s not found", username));
-            return new SecurityUser(user);
-        };
-    }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-            .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/register", "/login").permitAll()
-                .anyRequest().authenticated())
-            .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .rememberMe((rememberMe) -> rememberMe
-                .key("uniqueAndSecret")
-                .tokenValiditySeconds(30 * 24 * 60 * 60))
-            .sessionManagement((session) -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .maximumSessions(1))
-            .csrf(AbstractHttpConfigurer::disable)
-            .build();
+    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> webServerFactoryCustomizer() {
+        return factory -> factory.addInitializers((ServletContext servletContext) -> {
+            servletContext.getSessionCookieConfig().setMaxAge(sessionTimeout);
+        });
     }
 }

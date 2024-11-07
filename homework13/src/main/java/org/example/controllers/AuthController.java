@@ -2,23 +2,26 @@ package org.example.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.dto.PasswordResetConfirmRequest;
 import org.example.dto.PasswordResetRequest;
 import org.example.entities.User;
 import org.example.dto.LoginRequest;
-import org.example.dto.RegistrationRequest;
+import org.example.dto.SignUpRequest;
+import org.example.exceptions.EntityNotFoundException;
 import org.example.repositories.UserRepository;
+import org.example.services.CustomUserDetailsService;
 import org.example.services.PasswordResetService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,58 +29,75 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetService passwordResetService;
+    private final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegistrationRequest registrationRequest) {
-        User user = registrationRequest.createUser(passwordEncoder, "ROLE_USER");
-        userRepository.save(user);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<User> register(@Valid @RequestBody SignUpRequest signUpRequest) {
+        logger.info("Endpoint '/register': call");
+        if (userRepository.findByUsername(signUpRequest.getUsername()) != null) {
+            throw new IllegalArgumentException("User already exists");
+        }
+        User user = customUserDetailsService.registerUser(
+            signUpRequest.getUsername(),
+            signUpRequest.getPassword(),
+            signUpRequest.getEmail(),
+            "ROLE_USER",
+            signUpRequest.getName());
+        logger.info("Endpoint '/register': finish");
+        return ResponseEntity.ok(userRepository.save(user));
     }
+
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        try {
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(), loginRequest.getPassword());
-            Authentication auth = authenticationManager.authenticate(authToken);
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            HttpSession session = request.getSession(true);
-            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        User user = userRepository.findByUsername(loginRequest.getUsername());
+//
+//        if (user == null) {
+//            return ResponseEntity.status(401).body("Unauthorized");
+//        }
 
-            return ResponseEntity.ok().build();
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
-        }
+        return ResponseEntity.ok("User authenticated successfully");
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
+        logger.info("Endpoint '/logout': call");
         HttpSession session = request.getSession(false);
         if (session != null) {
+            logger.info("Endpoint '/logout': Invalidating session");
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
+        logger.info("Endpoint '/logout': finish");
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/request-password-reset")
-    public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
+
+    @PostMapping("/password-reset")
+    public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
         User user = userRepository.findByUsername(request.getUsername());
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            throw new EntityNotFoundException("User not found");
         }
         passwordResetService.sendConfirmationCode(user);
         return ResponseEntity.ok("Confirmation code sent");
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetConfirmRequest request) {
+
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<?> confirmResetPassword(@Valid @RequestBody PasswordResetConfirmRequest request) {
         User user = userRepository.findByUsername(request.getUsername());
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            throw new EntityNotFoundException("User not found");
         }
 
         if (!passwordResetService.validateConfirmationCode(user.getUsername(), request.getConfirmationCode())) {

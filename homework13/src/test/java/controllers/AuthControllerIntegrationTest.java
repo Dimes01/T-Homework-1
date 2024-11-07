@@ -1,22 +1,33 @@
 package controllers;
 
 import org.example.Homework13Application;
+import org.example.dto.PasswordResetConfirmRequest;
+import org.example.dto.PasswordResetRequest;
 import org.example.entities.User;
 import org.example.dto.LoginRequest;
-import org.example.dto.RegistrationRequest;
+import org.example.dto.SignUpRequest;
 import org.example.repositories.UserRepository;
+import org.example.services.PasswordResetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,9 +41,10 @@ public class AuthControllerIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private PasswordResetService passwordResetService;
 
     private final ObjectMapper utilMapper = new ObjectMapper();
-    private final RegistrationRequest registrationRequest = new RegistrationRequest("user1", "password");
+    private final SignUpRequest signUpRequest = new SignUpRequest("user1", "user1@mail.ru", "1111", "Ivan");
 
     public AuthControllerIntegrationTest() throws JsonProcessingException { }
 
@@ -41,34 +53,93 @@ public class AuthControllerIntegrationTest {
         userRepository.deleteAll();
     }
 
-    @Test
-    public void register() throws Exception {
+
+    public static Stream<Arguments> validationSignUpParameters() {
+        return Stream.of(
+            Arguments.of(new SignUpRequest("test", "test@mail.ru", "0", "Test"), status().isOk()),
+            Arguments.of(new SignUpRequest("test", "test@mail.ru", "0", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("test", "test@mail.ru", "", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("test", "test@mail.ru", "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("test", "", "0", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("test", "", "0", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("test", "", "", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("test", "", "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "test@mail.ru", "0", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "test@mail.ru", "0", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "test@mail.ru", "", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "test@mail.ru", "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "0", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "0", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "", "Test"), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "", ""), status().isBadRequest())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("validationSignUpParameters")
+    public void register_validateParams_allSituations(SignUpRequest testSignUpRequest, ResultMatcher resultMatcher) throws Exception {
         // Arrange
-        String registrationFormJson = utilMapper.writeValueAsString(registrationRequest);
+        String requestString = utilMapper.writeValueAsString(testSignUpRequest);
+
+        // Act & Assert
+        mockMvc.perform(post("/register")
+                .content(requestString)
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(resultMatcher);
+    }
+
+
+    @Test
+    public void register_notExistedUser_ok() throws Exception {
+        // Arrange
+        String requestString = utilMapper.writeValueAsString(signUpRequest);
 
         // Act
         String responseString = mockMvc.perform(post("/register")
-                .content(registrationFormJson)
+                .content(requestString)
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
+
         User user = utilMapper.readValue(responseString, User.class);
-        User expectedUser = userRepository.findByUsername(registrationRequest.getUsername());
+        User expectedUser = userRepository.findByUsername(signUpRequest.getUsername());
 
         // Assert
-        assertEquals(expectedUser.getId(), user.getId());
+        assertEquals(expectedUser, user);
+    }
+
+    @Test
+    public void register_existedUser_badRequest() throws Exception {
+        // Arrange
+        String requestString = utilMapper.writeValueAsString(signUpRequest);
+        User user = new User();
+        user.setUsername(signUpRequest.getUsername());
+        user.setEmail(signUpRequest.getEmail());
+        user.setAuthority("ROLE_USER");
+        user.setPassword(signUpRequest.getPassword());
+        user.setName(signUpRequest.getName());
+        userRepository.save(user);
+
+        // Act
+        mockMvc.perform(post("/register")
+                .content(requestString)
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+
+        // Assert
+        assertNotNull(userRepository.findByUsername(signUpRequest.getUsername()));
     }
 
     @Test
     public void login_existedUser_ok() throws Exception {
         // Arrange
-        User user = registrationRequest.createUser(passwordEncoder, "ROLE_USER");
+        User user = new User("user1", "user1@mail.ru", passwordEncoder.encode("1111"), "ROLE_USER", "user1");
         userRepository.save(user);
-        LoginRequest request = new LoginRequest(registrationRequest.getUsername(), registrationRequest.getPassword());
+        LoginRequest request = new LoginRequest("user1", "1111");
         String requestString = utilMapper.writeValueAsString(request);
 
         // Act & Assert
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/auth/login")
                 .content(requestString)
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
@@ -81,9 +152,98 @@ public class AuthControllerIntegrationTest {
         String requestString = utilMapper.writeValueAsString(request);
 
         // Act & Assert
-        mockMvc.perform(post("/login")
+        mockMvc.perform(post("/auth/login")
                 .content(requestString)
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void logout_ok() throws Exception {
+        // Arrange
+        User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(), passwordEncoder.encode(signUpRequest.getPassword()), "ROLE_USER", signUpRequest.getName());
+        userRepository.save(user);
+
+        MockHttpSession session = new MockHttpSession();
+
+        mockMvc.perform(post("/login")
+                .content(utilMapper.writeValueAsString(new LoginRequest(signUpRequest.getUsername(), signUpRequest.getPassword())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(session))
+            .andExpect(status().isOk());
+
+        // Act
+        mockMvc.perform(post("/logout")
+                .session(session))
+            .andExpect(status().isOk());
+
+        // Assert
+        assertTrue(session.isInvalid());
+    }
+
+    @Test
+    public void passwordReset_userExists_confirmationCodeSent() throws Exception {
+        // Arrange
+        User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(), passwordEncoder.encode(signUpRequest.getPassword()), "ROLE_USER", signUpRequest.getName());
+        userRepository.save(user);
+        PasswordResetRequest resetRequest = new PasswordResetRequest(user.getUsername());
+
+        // Act & Assert
+        mockMvc.perform(post("/password-reset")
+                .content(utilMapper.writeValueAsString(resetRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void passwordReset_userNotExists_userNotFound() throws Exception {
+        // Arrange
+        PasswordResetRequest resetRequest = new PasswordResetRequest("nonexistentUser");
+
+        // Act & Assert
+        mockMvc.perform(post("/password-reset")
+                .content(utilMapper.writeValueAsString(resetRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void passwordResetConfirm_invalidCode_unauthorized() throws Exception {
+        // Arrange
+        User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(), passwordEncoder.encode(signUpRequest.getPassword()), "ROLE_USER", signUpRequest.getName());
+        userRepository.save(user);
+        String newPassword = "newPassword";
+        PasswordResetConfirmRequest resetConfirmRequest = new PasswordResetConfirmRequest(user.getUsername(), "wrongCode", newPassword);
+
+        // Act & Assert
+        mockMvc.perform(post("/password-reset/confirm")
+                .content(utilMapper.writeValueAsString(resetConfirmRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    public void passwordResetConfirm_validCode_passwordResetSuccessful() throws Exception {
+        // Arrange
+        User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(), passwordEncoder.encode(signUpRequest.getPassword()), "ROLE_USER", signUpRequest.getName());
+        userRepository.save(user);
+
+        String confirmationCode = "0000";
+        passwordResetService.sendConfirmationCode(user);
+        String newPassword = "newPassword";
+        String hashNewPassword = passwordEncoder.encode(newPassword);
+        PasswordResetConfirmRequest resetConfirmRequest = new PasswordResetConfirmRequest(user.getUsername(), confirmationCode, newPassword);
+
+        // Act
+        mockMvc.perform(post("/password-reset/confirm")
+                .content(utilMapper.writeValueAsString(resetConfirmRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+
+        // Assert
+        User updatedUser = userRepository.findByUsername(user.getUsername());
+        assertNotNull(updatedUser);
+        assertTrue(passwordEncoder.matches(newPassword, updatedUser.getPassword()));
     }
 }
