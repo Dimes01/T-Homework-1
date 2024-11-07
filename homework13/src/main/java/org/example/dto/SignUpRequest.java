@@ -22,4 +22,7 @@ public class SignUpRequest {
 
     @NotBlank(message = "Name cannot be blank")
     private String name;
+
+    @NotBlank(message = "Authority cannot be blank")
+    private String authority;
 }

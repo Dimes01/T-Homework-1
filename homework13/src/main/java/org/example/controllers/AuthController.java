@@ -45,7 +45,7 @@ public class AuthController {
             signUpRequest.getUsername(),
             signUpRequest.getPassword(),
             signUpRequest.getEmail(),
-            "ROLE_USER",
+            signUpRequest.getAuthority(),
             signUpRequest.getName());
         logger.info("Endpoint '/register': finish");
         return ResponseEntity.ok(userRepository.save(user));

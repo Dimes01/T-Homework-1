@@ -7,9 +7,6 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
-  redis:
-    host: localhost
-    port: 6379
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,7 +15,14 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   session:
-    store-type: jdbc
+    jdbc:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      driver-class-name: org.postgresql.Driver
+      username: postgres
+      password: postgres
+      url: jdbc:postgresql://localhost:5433/sessions
+      initialize-schema: classpath:schema.sql
+      initialization-mode: always
 
 server:
   servlet:

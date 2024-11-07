@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -37,6 +38,7 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<Event> getEventById(@PathVariable Long id) {
         logger.info("Method 'getEventById' is started");
         Event event = placeService.getEventById(id);
@@ -49,6 +51,7 @@ public class EventController {
     }
 
     @GetMapping("/filter")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<List<Event>> getEventsByFilter(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long placeId,
@@ -59,6 +62,7 @@ public class EventController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Event> postCreateEvent(@Valid @RequestBody Event event) {
         logger.info("Method 'postCreateEvent' is started");
         if (placeService.getPlaceByIdWithEvents(event.getPlaceId().getId()) == null) {
@@ -71,6 +75,7 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Event> putUpdateEvent(@PathVariable Long id, @Valid @RequestBody Event event) {
         logger.info("Method 'putUpdateEvent' is started");
         Event existingEvent = placeService.getEventById(id);
@@ -89,6 +94,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         logger.info("Method 'deleteEvent' is started");
         Event event = placeService.getEventById(id);

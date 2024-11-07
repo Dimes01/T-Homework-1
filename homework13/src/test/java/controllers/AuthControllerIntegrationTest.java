@@ -44,7 +44,7 @@ public class AuthControllerIntegrationTest {
     @Autowired private PasswordResetService passwordResetService;
 
     private final ObjectMapper utilMapper = new ObjectMapper();
-    private final SignUpRequest signUpRequest = new SignUpRequest("user1", "user1@mail.ru", "1111", "Ivan");
+    private final SignUpRequest signUpRequest = new SignUpRequest("user1", "user1@mail.ru", "1111", "Ivan", "ROLE_USER");
 
     public AuthControllerIntegrationTest() throws JsonProcessingException { }
 
@@ -55,23 +55,44 @@ public class AuthControllerIntegrationTest {
 
 
     public static Stream<Arguments> validationSignUpParameters() {
+        String username = "test";
+        String email = "test@mail.ru";
+        String password = "0";
+        String name = "Test";
+        String authority = "ROLE_USER";
         return Stream.of(
-            Arguments.of(new SignUpRequest("test", "test@mail.ru", "0", "Test"), status().isOk()),
-            Arguments.of(new SignUpRequest("test", "test@mail.ru", "0", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("test", "test@mail.ru", "", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("test", "test@mail.ru", "", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("test", "", "0", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("test", "", "0", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("test", "", "", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("test", "", "", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "test@mail.ru", "0", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "test@mail.ru", "0", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "test@mail.ru", "", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "test@mail.ru", "", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "", "0", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "", "0", ""), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "", "", "Test"), status().isBadRequest()),
-            Arguments.of(new SignUpRequest("", "", "", ""), status().isBadRequest())
+            Arguments.of(new SignUpRequest(username, email, password, name, authority), status().isOk()),
+            Arguments.of(new SignUpRequest(username, email, password, name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, email, password, "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, email, password, "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, email, "", name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, email, "", name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, email, "", "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, email, "", "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", password, name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", password, name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", password, "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", password, "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", "", name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", "", name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", "", "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest(username, "", "", "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, password, name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, password, name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, password, "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, password, "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, "", name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, "", name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, "", "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", email, "", "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", password, name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", password, name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", password, "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", password, "", ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "", name, authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "", name, ""), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "", "", authority), status().isBadRequest()),
+            Arguments.of(new SignUpRequest("", "", "", "", ""), status().isBadRequest())
         );
     }
 
@@ -138,10 +159,13 @@ public class AuthControllerIntegrationTest {
         LoginRequest request = new LoginRequest("user1", "1111");
         String requestString = utilMapper.writeValueAsString(request);
 
+        MockHttpSession session = new MockHttpSession();
+
         // Act & Assert
         mockMvc.perform(post("/auth/login")
                 .content(requestString)
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(session))
             .andExpect(status().isOk());
     }
 
@@ -151,10 +175,13 @@ public class AuthControllerIntegrationTest {
         LoginRequest request = new LoginRequest("user-1", "pass-1");
         String requestString = utilMapper.writeValueAsString(request);
 
+        MockHttpSession session = new MockHttpSession();
+
         // Act & Assert
         mockMvc.perform(post("/auth/login")
                 .content(requestString)
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(session))
             .andExpect(status().isUnauthorized());
     }
 
