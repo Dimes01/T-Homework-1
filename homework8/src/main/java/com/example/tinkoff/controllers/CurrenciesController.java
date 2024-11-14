@@ -1,11 +1,13 @@
 package com.example.tinkoff.controllers;
 
-import com.example.tinkoff.models.CurrencyInfo;
-import org.example.homework8.dto.ConvertRequest;
-import org.example.homework8.dto.ConvertResponse;
-import org.example.homework8.dto.Rate;
-import com.example.tinkoff.models.Currency;
-import com.example.tinkoff.services.CurrencyService;
+import com.example.tinkoff.dto.ConvertRequest;
+import com.example.tinkoff.dto.ConvertResponse;
+import com.example.tinkoff.models.Rate;
+import com.example.tinkoff.models.Valute;
+import com.example.tinkoff.models.ValuteInfo;
+import com.example.tinkoff.services.ValuteService;
+import com.example.tinkoff.utilities.ControllersAdvice;
+import com.example.tinkoff.utilities.ControllersAdvice.ErrorMessage;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.example.tinkoff.utilities.ServiceUnavailableException;
@@ -24,22 +26,22 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
 @Validated
-@RestController("/currencies")
+@RestController
+@RequestMapping("/currencies")
 public class CurrenciesController {
 
-    public record ErrorMessage(String message, int code) {}
-
     @Autowired
-    private CurrencyService currencyService;
+    private ValuteService valuteService;
 
     @Operation(summary = "Get currency rate by date", description = "Provide a date and ISO char code to look up a specific currency rate")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved currency rate",
-                    content = @Content(schema = @Schema(implementation = Currency.class))),
+                    content = @Content(schema = @Schema(implementation = Valute.class))),
             @ApiResponse(responseCode = "400", description = "Invalid date or ISO char code supplied"),
             @ApiResponse(responseCode = "404", description = "Currency not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -47,8 +49,8 @@ public class CurrenciesController {
     @GetMapping("/rates/{code}")
     public ResponseEntity<Rate> getCurrenciesRate(@NotBlank @PathVariable("code") String isoCharCode) throws JsonProcessingException, CurrencyNotExistException, CurrencyNotFoundException {
         var date = LocalDate.now();
-        currencyService.getCurrencyInfoByISOCharCode(isoCharCode);
-        var currency = currencyService.getCurrencyCursByDate(date, isoCharCode);
+        valuteService.getValuteInfoByISOCharCode(isoCharCode);
+        var currency = valuteService.getCurrencyCursByDate(date, isoCharCode);
         var rate = new Rate(currency.getCharCode(), currency.getVunitRate());
         return ResponseEntity.ok(rate);
     }
@@ -56,9 +58,9 @@ public class CurrenciesController {
     @Operation(summary = "Get valute info by ISO char code", description = "Provide an ISO char code to look up a specific valute info")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved valute info",
-                    content = @Content(schema = @Schema(implementation = CurrencyInfo.class))),
+                    content = @Content(schema = @Schema(implementation = ValuteInfo.class))),
             @ApiResponse(responseCode = "400", description = "Invalid ISO char code supplied"),
-            @ApiResponse(responseCode = "404", description = "Currency not found"),
+            @ApiResponse(responseCode = "404", description = "Valute not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/convert")
@@ -66,68 +68,15 @@ public class CurrenciesController {
         var fromCurrencyCode = convertRequest.getFromCurrency();
         var toCurrencyCode = convertRequest.getToCurrency();
 
-        boolean fromCurrencyCodeIsRub = Objects.equals(fromCurrencyCode, "RUB");
-
-        if (!fromCurrencyCodeIsRub) currencyService.getCurrencyInfoByISOCharCode(fromCurrencyCode);
-        currencyService.getCurrencyInfoByISOCharCode(toCurrencyCode);
+        valuteService.getValuteInfoByISOCharCode(fromCurrencyCode);
+        valuteService.getValuteInfoByISOCharCode(toCurrencyCode);
 
         var date = LocalDate.now();
 
-        Currency fromCurrency = fromCurrencyCodeIsRub
-                ? new Currency("R00001", "001", "RUB", 1, "Российский рубль", 1, 1)
-                : currencyService.getCurrencyCursByDate(date, fromCurrencyCode);
-        Currency toCurrency = currencyService.getCurrencyCursByDate(date, toCurrencyCode);
+        var fromCurrency = valuteService.getCurrencyCursByDate(date, fromCurrencyCode);
+        var toCurrency = valuteService.getCurrencyCursByDate(date, toCurrencyCode);
 
-        var amount = currencyService.calculateAmountBetweenCurrencies(fromCurrency, convertRequest.getAmount(), toCurrency);
+        var amount = valuteService.calculateAmountBetweenCurrencies(fromCurrency, convertRequest.getAmount(), toCurrency);
         return ResponseEntity.ok(new ConvertResponse(convertRequest.getFromCurrency(), convertRequest.getToCurrency(), amount));
-    }
-
-    @ExceptionHandler({MethodArgumentNotValidException.class})
-    public ResponseEntity<ErrorMessage> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        String message;
-        if (Objects.equals(e.getParameter().getParameterName(), "amount"))
-            message = "Amount must be positive integer";
-        else
-            message = e.getParameter().getParameterName() + "must not be null or empty";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content type", "application/xml");
-        return new ResponseEntity<>(
-                new ErrorMessage(message, HttpStatus.BAD_REQUEST.value()),
-                headers,
-                HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler({CurrencyNotExistException.class})
-    public ResponseEntity<ErrorMessage> handleCurrencyNotExistException(CurrencyNotExistException e) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content type", "application/xml");
-        return new ResponseEntity<>(
-            new ErrorMessage(String.format("Currency with code '{0}' is not existed", e.getIsoCharCode()), HttpStatus.BAD_REQUEST.value()),
-            headers,
-            HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler({CurrencyNotFoundException.class})
-    public ResponseEntity<ErrorMessage> handleCurrencyNotFoundException(CurrencyNotExistException e) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content type", "application/xml");
-        return new ResponseEntity<>(
-            new ErrorMessage(String.format("Currency with code '{0}' is not found", e.getIsoCharCode()), HttpStatus.NOT_FOUND.value()),
-            headers,
-            HttpStatus.NOT_FOUND
-        );
-    }
-
-    @ExceptionHandler({ServiceUnavailableException.class})
-    public ResponseEntity<ErrorMessage> handleServiceUnavailableException(ServiceUnavailableException e) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Retry-After", "3600");
-        return new ResponseEntity<>(
-                new ErrorMessage(e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE.value()),
-                headers,
-                HttpStatus.SERVICE_UNAVAILABLE
-        );
     }
 }
