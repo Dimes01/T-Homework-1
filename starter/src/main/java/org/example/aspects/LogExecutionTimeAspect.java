@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 
 @Aspect
-@Component
 public class LogExecutionTimeAspect {
     private final Logger logger = LoggerFactory.getLogger(LogExecutionTimeAspect.class);
 

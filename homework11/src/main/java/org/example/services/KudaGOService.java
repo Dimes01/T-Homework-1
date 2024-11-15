@@ -1,7 +1,7 @@
 package org.example.services;
 
-import org.example.homework5.models.Category;
-import org.example.homework5.models.Location;
+import org.example.models.Category;
+import org.example.models.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;

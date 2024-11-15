@@ -1,6 +1,6 @@
 package org.example.services;
-import org.example.homework5.models.Category;
-import org.example.homework5.models.Location;
+import org.example.models.Category;
+import org.example.models.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

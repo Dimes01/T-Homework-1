@@ -1,8 +1,8 @@
 package org.example.utilities;
 
 import org.example.annotations.LogExecutionTime;
-import org.example.homework5.models.Category;
-import org.example.homework5.models.Location;
+import org.example.models.Category;
+import org.example.models.Location;
 import org.example.services.KudaGOService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

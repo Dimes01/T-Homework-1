@@ -19,7 +19,6 @@ val testcontainersVersion = project.properties["testcontainersVersion"]
 val mockitoVersion = project.properties["mockitoVersion"]
 dependencies {
     implementation(project(":starter"))
-    implementation(project(":domain"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")

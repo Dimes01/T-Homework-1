@@ -1,8 +1,8 @@
 package utilities;
 
 import org.example.Homework5Application;
-import org.example.homework5.models.Category;
-import org.example.homework5.models.Location;
+import org.example.models.Category;
+import org.example.models.Location;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

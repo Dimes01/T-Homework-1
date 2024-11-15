@@ -20,9 +20,10 @@ val mockitoVersion = project.properties["mockitoVersion"]
 val reactorVersion = project.properties["reactorVersion"]
 dependencies {
 	implementation(project(":starter"))
-	implementation(project(":domain"))
+	implementation(project(":homework8"))
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-aop")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("io.projectreactor:reactor-core:$reactorVersion")
 	implementation("io.projectreactor:reactor-test:$reactorVersion")
 

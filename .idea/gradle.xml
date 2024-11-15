@@ -9,7 +9,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/homework10" />
             <option value="$PROJECT_DIR$/homework11" />
             <option value="$PROJECT_DIR$/homework13" />

@@ -3,11 +3,8 @@ package com.example.tinkoff.controllers;
 import com.example.tinkoff.models.Currency;
 import com.example.tinkoff.models.CurrencyInfo;
 import com.example.tinkoff.services.CurrencyService;
-import com.example.tinkoff.utilities.ControllersAdvice;
-import com.example.tinkoff.utilities.ControllersAdvice.ErrorMessage;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
-import com.example.tinkoff.utilities.ServiceUnavailableException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,20 +12,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.NotBlank;
-import org.example.homework8.dto.ConvertRequest;
-import org.example.homework8.dto.ConvertResponse;
-import org.example.homework8.dto.Rate;
+import com.example.tinkoff.dto.ConvertRequest;
+import com.example.tinkoff.dto.ConvertResponse;
+import com.example.tinkoff.dto.Rate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Objects;
 
 @Validated
 @RestController

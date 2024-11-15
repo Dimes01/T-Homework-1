@@ -3,7 +3,7 @@ package com.example.tinkoff.controllers;
 import com.example.tinkoff.configurations.XmlMapperConfiguration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.example.homework8.dto.ConvertRequest;
+import com.example.tinkoff.dto.ConvertRequest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

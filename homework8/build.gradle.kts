@@ -21,8 +21,6 @@ repositories {
 var resilience4jVersion = "2.2.0"
 var jacksonVersion = "2.18.0"
 dependencies {
-	implementation(project(":domain"))
-
 	implementation("org.springframework.boot:spring-boot-starter-aop")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-cache")

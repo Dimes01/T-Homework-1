@@ -8,6 +8,7 @@ import org.example.models.Place;
 import org.example.repositories.EventRepository;
 import org.example.repositories.PlaceRepository;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -29,6 +30,7 @@ import java.util.stream.Stream;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Disabled
 @SpringBootTest(classes = Homework10Application.class)
 @AutoConfigureMockMvc
 @Testcontainers

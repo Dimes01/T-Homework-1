@@ -2,12 +2,12 @@ package com.example.controllers;
 
 import com.example.models.Event;
 import com.example.services.KudaGOService;
+import com.example.tinkoff.dto.ConvertRequest;
+import com.example.tinkoff.dto.ConvertResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.example.annotations.LogExecutionTime;
-import org.example.homework8.dto.ConvertRequest;
-import org.example.homework8.dto.ConvertResponse;
-import org.example.homework9.dto.PossibleEvent;
+import com.example.dto.PossibleEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.annotation.DateTimeFormat;

@@ -19,12 +19,12 @@ val testcontainersVersion = project.properties["testcontainersVersion"]
 val mockitoVersion = project.properties["mockitoVersion"]
 dependencies {
     implementation(project(":starter"))
-    implementation(project(":domain"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.session:spring-session-jdbc")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
