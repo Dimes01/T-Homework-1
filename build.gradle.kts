@@ -27,6 +27,7 @@ subprojects {
         compileOnly("org.projectlombok:lombok:$lombokVersion")
         annotationProcessor ("org.projectlombok:lombok:$lombokVersion")
 
+        implementation("org.springframework.boot:spring-boot-starter-security")
         implementation("org.springframework.boot:spring-boot-starter-validation")
 
         implementation("org.slf4j:slf4j-api:$slf4jVersion")

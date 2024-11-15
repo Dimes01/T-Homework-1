@@ -20,5 +20,3 @@ class StorageConfiguration {
         return locationStorage;
     }
 }
-
-

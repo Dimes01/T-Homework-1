@@ -10,6 +10,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/domain" />
+            <option value="$PROJECT_DIR$/homework10" />
+            <option value="$PROJECT_DIR$/homework11" />
+            <option value="$PROJECT_DIR$/homework13" />
             <option value="$PROJECT_DIR$/homework3" />
             <option value="$PROJECT_DIR$/homework5" />
             <option value="$PROJECT_DIR$/homework8" />
