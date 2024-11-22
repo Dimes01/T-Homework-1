@@ -1,7 +1,7 @@
 package com.example.utilities;
 
 import com.example.models.Event;
-import org.example.homework9.models.EventDate;
+import com.example.models.EventDate;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

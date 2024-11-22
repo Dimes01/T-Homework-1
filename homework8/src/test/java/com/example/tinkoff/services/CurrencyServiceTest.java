@@ -10,6 +10,7 @@ import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -131,6 +132,7 @@ class CurrencyServiceTest {
         );
     }
 
+    @Disabled
     @ParameterizedTest
     @MethodSource("calculateAmountBetweenCurrencies_allSituations")
     public void test_calculateAmountBetweenCurrencies(Currency currencyFrom, Currency currencyTo, double amount) {

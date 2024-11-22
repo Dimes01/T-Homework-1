@@ -1,7 +1,5 @@
 package org.example.controllers;
-
-import org.example.homework5.models.Category;
-import org.example.utilities.Snapshot;
+import org.example.models.Category;
 import org.example.utilities.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 @RestController
@@ -80,17 +77,5 @@ public class CategoryController {
         }
         logger.info("Method 'deleteCategory' is finished");
         return ResponseEntity.ok(deletingElem);
-    }
-
-    @GetMapping("/{id}/history")
-    public ResponseEntity<List<Snapshot<Category>>> getCategoryHistory(@PathVariable Long id) {
-        logger.info("Method 'getCategoryHistory' is started");
-        List<Snapshot<Category>> history = storage.getHistory(id);
-        if (history.isEmpty()) {
-            logger.warn("Method 'getCategoryHistory': no history found for element with id({})", id);
-            return ResponseEntity.badRequest().build();
-        }
-        logger.info("Method 'getCategoryHistory' is finished");
-        return ResponseEntity.ok(history);
     }
 }

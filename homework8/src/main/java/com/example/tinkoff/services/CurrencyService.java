@@ -1,9 +1,9 @@
 package com.example.tinkoff.services;
 
-import com.example.tinkoff.models.AllValutes;
-import com.example.tinkoff.models.Valute;
-import com.example.tinkoff.models.ValuteCurs;
-import com.example.tinkoff.models.ValuteInfo;
+import com.example.tinkoff.models.AllCurrencies;
+import com.example.tinkoff.models.Currency;
+import com.example.tinkoff.models.CurrencyCurs;
+import com.example.tinkoff.models.CurrencyInfo;
 import com.example.tinkoff.utilities.CurrencyNotExistException;
 import com.example.tinkoff.utilities.CurrencyNotFoundException;
 import com.example.tinkoff.utilities.ServiceUnavailableException;
@@ -25,7 +25,7 @@ import java.util.Objects;
 
 
 @Service
-public class ValuteService {
+public class CurrencyService {
 
     @Autowired
     private RestClient restClient;
@@ -35,11 +35,11 @@ public class ValuteService {
 
     private final String dateFormat = "dd/MM/yyyy";
 
-    private final Logger logger = LoggerFactory.getLogger(ValuteService.class);
+    private final Logger logger = LoggerFactory.getLogger(CurrencyService.class);
 
     @Cacheable(value = "currenciesCursesByDate")
     @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "circuitFallbackCurrencyCursByDate")
-    public Valute getCurrencyCursByDate(LocalDate date, String isoCharCode) throws JsonProcessingException, CurrencyNotFoundException {
+    public Currency getCurrencyCursByDate(LocalDate date, String isoCharCode) throws JsonProcessingException, CurrencyNotFoundException {
         logger.info("Method 'getCurrenciesCursesByDate': started");
 
         var dateFormatted = date.format(DateTimeFormatter.ofPattern(dateFormat));
@@ -49,8 +49,8 @@ public class ValuteService {
                 .body(String.class);
         logger.debug("Method 'getCurrenciesCursesByDate': currencies curses is received");
 
-        Valute currency = xmlMapper.readValue(response, ValuteCurs.class)
-                .getValutes().stream()
+        Currency currency = xmlMapper.readValue(response, CurrencyCurs.class)
+                .getCurrencies().stream()
                 .filter(c -> Objects.equals(c.getCharCode(), isoCharCode))
                 .findFirst().orElse(null);
         if (currency == null) throw new CurrencyNotFoundException(isoCharCode);
@@ -62,7 +62,7 @@ public class ValuteService {
 
     @Cacheable(value = "valuteInfoByISOCharCode", key = "#isoCharCode")
     @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "circuitFallbackValuteInfoByISOCharCode")
-    public ValuteInfo getValuteInfoByISOCharCode(String isoCharCode) throws JsonProcessingException, CurrencyNotExistException {
+    public CurrencyInfo getValuteInfoByISOCharCode(String isoCharCode) throws JsonProcessingException, CurrencyNotExistException {
         logger.info("Method 'getValuteInfoByISOCharCode': started");
 
         var response = restClient.get()
@@ -71,7 +71,7 @@ public class ValuteService {
                 .body(String.class);
         logger.debug("Method 'getValuteInfoByISOCharCode': currencies info is received");
 
-        ValuteInfo valuteInfo = xmlMapper.readValue(response, AllValutes.class).getValutes().stream()
+        CurrencyInfo valuteInfo = xmlMapper.readValue(response, AllCurrencies.class).getValutes().stream()
                 .filter(v -> Objects.equals(v.getIsoCharCode(), isoCharCode))
                 .findFirst()
                 .orElse(null);
@@ -82,7 +82,7 @@ public class ValuteService {
         return valuteInfo;
     }
 
-    public double calculateAmountBetweenCurrencies(Valute currencyFrom, double amount, Valute currencyTo) {
+    public double calculateAmountBetweenCurrencies(Currency currencyFrom, double amount, Currency currencyTo) {
         if (currencyFrom == null || currencyTo == null) return -1;
         BigDecimal currencyFromValue = BigDecimal.valueOf(currencyFrom.getValue());
         BigDecimal currencyToValue = BigDecimal.valueOf(currencyTo.getValue());
@@ -91,12 +91,12 @@ public class ValuteService {
         return result.doubleValue();
     }
 
-    public Valute circuitFallbackCurrencyCursByDate(LocalDate date, String isoCharCode, Throwable throwable) {
+    public Currency circuitFallbackCurrencyCursByDate(LocalDate date, String isoCharCode, Throwable throwable) {
         logger.error("Circuit breaker activated for 'getCurrenciesCursesByDate': {}", throwable.getMessage());
         throw new ServiceUnavailableException("Currency service is currently unavailable. Please try again later.");
     }
 
-    public ValuteInfo circuitFallbackValuteInfoByISOCharCode(String isoCharCode, Throwable throwable) {
+    public CurrencyInfo circuitFallbackValuteInfoByISOCharCode(String isoCharCode, Throwable throwable) {
         logger.error("Circuit breaker activated for 'getValuteInfoByISOCharCode': {}", throwable.getMessage());
         throw new ServiceUnavailableException("Currency service is currently unavailable. Please try again later.");
     }

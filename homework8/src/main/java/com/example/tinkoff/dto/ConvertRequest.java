@@ -1,4 +1,4 @@
-package org.example.homework8.dto;
+package com.example.tinkoff.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

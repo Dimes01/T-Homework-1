@@ -1,11 +1,9 @@
-package org.example.homework9.dto;
+package com.example.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.homework9.models.EventDate;
-
-import java.time.LocalDate;
+import com.example.models.EventDate;
 
 @Data
 @AllArgsConstructor
