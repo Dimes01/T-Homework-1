@@ -6,7 +6,6 @@ import com.example.tinkoff.dto.ConvertRequest;
 import com.example.tinkoff.dto.ConvertResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.example.annotations.LogExecutionTime;
 import com.example.dto.PossibleEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -62,7 +61,6 @@ public class EventController {
                 .map(ResponseEntity::ok);
     }
 
-    @LogExecutionTime
     @GetMapping("/v1.0/events")
     public ResponseEntity<List<PossibleEvent>> getPossibleEvents(
             @RequestParam @NotNull double budget,

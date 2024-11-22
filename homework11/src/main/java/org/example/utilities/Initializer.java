@@ -1,7 +1,6 @@
 package org.example.utilities;
 
 import lombok.RequiredArgsConstructor;
-import org.example.annotations.LogExecutionTime;
 import org.example.interfaces.AbstractInitializer;
 import org.example.interfaces.DataObserver;
 import org.example.interfaces.DataSubject;
@@ -29,7 +28,6 @@ public class Initializer extends AbstractInitializer implements DataSubject<Obje
     private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 
 
-    @LogExecutionTime
     @EventListener(ContextRefreshedEvent.class)
     public void initializeData() {
         logger.info("Initializer and method 'initializeData' are started");

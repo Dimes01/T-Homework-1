@@ -1,6 +1,5 @@
 package org.example.utilities;
 
-import org.example.annotations.LogExecutionTime;
 import org.example.models.Category;
 import org.example.models.Location;
 import org.example.services.KudaGOService;
@@ -29,7 +28,6 @@ public class Initializer implements ApplicationListener<ContextRefreshedEvent> {
         this.locationStorage = locationStorage;
     }
 
-    @LogExecutionTime
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         logger.info("Initializer and method 'run' are started");
