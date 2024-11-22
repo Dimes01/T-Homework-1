@@ -1,10 +1,10 @@
 package com.example.benchmark;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -13,88 +13,122 @@ import org.openjdk.jmh.annotations.*;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
-@OutputTimeUnit(TimeUnit.SECONDS)
-@Fork(2)
-@Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Fork(5)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Timeout(time = 20, timeUnit = TimeUnit.SECONDS)
+@BenchmarkMode(Mode.Throughput)
 public class KafkaBenchmark {
 
-    private KafkaProducer<String, String>[] producers;
-    private KafkaConsumer<String, String>[] consumers;
-    private static final String TOPIC = "test_topic";
+    private static final String TOPIC_NAME = "benchmarkTopic";
+    private static final int COUNT = 3;
+    private static final int MESSAGE_COUNT = 1000;
+    private static final String MESSAGE = "Message";
 
-    @Param({"1", "3", "10"})
-    private int producersCount;
-
-    @Param({"1", "3", "10"})
-    private int consumersCount;
+    private Properties producerProperties;
+    private Properties consumerProperties;
 
     @Setup(Level.Trial)
     public void setup() {
-        producers = new KafkaProducer[producersCount];
-        consumers = new KafkaConsumer[consumersCount];
+        producerProperties = new Properties();
+        producerProperties.put("bootstrap.servers", "localhost:9092");
+        producerProperties.put("key.serializer", StringSerializer.class.getName());
+        producerProperties.put("value.serializer", StringSerializer.class.getName());
 
-        Properties producerProps = new Properties();
-        producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-
-        for (int i = 0; i < producersCount; i++) {
-            producers[i] = new KafkaProducer<>(producerProps);
-        }
-
-        Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test");
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
-        for (int i = 0; i < consumersCount; i++) {
-            consumers[i] = new KafkaConsumer<>(consumerProps);
-            consumers[i].subscribe(Collections.singletonList(TOPIC));
-        }
+        consumerProperties = new Properties();
+        consumerProperties.put("bootstrap.servers", "localhost:9092");
+        consumerProperties.put("group.id", "benchmarkGroup");
+        consumerProperties.put("key.deserializer", StringDeserializer.class.getName());
+        consumerProperties.put("value.deserializer", StringDeserializer.class.getName());
+        consumerProperties.put("auto.offset.reset", "earliest");
     }
 
-    @TearDown(Level.Trial)
-    public void tearDown() {
-        for (KafkaProducer<String, String> producer : producers) {
-            producer.close();
+    private CompletableFuture<Void> singleProducer() {
+        return CompletableFuture.runAsync(() -> {
+            try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
+                for (int i = 0; i < MESSAGE_COUNT; ++i) {
+                    producer.send(new ProducerRecord<>(TOPIC_NAME, MESSAGE));
+                }
+            }
+        });
+    }
+
+    private CompletableFuture<Void> singleConsumer() {
+        return CompletableFuture.runAsync(() -> {
+            try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+                consumer.subscribe(Collections.singletonList(TOPIC_NAME));
+                int messagesProcessed = 0;
+                while (messagesProcessed < MESSAGE_COUNT) {
+                    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+                    messagesProcessed += records.count();
+                }
+            }
+        });
+    }
+
+    private CompletableFuture<Void>[] multipleProducers(int count) {
+        CompletableFuture<Void>[] producerFutures = new CompletableFuture[count];
+        for (int i = 0; i < count; ++i) {
+            producerFutures[i] = singleProducer();
         }
-        for (KafkaConsumer<String, String> consumer : consumers) {
-            consumer.close();
+        return producerFutures;
+    }
+
+    private CompletableFuture<Void>[] multipleConsumers(int count) {
+        CompletableFuture<Void>[] consumerFutures = new CompletableFuture[count];
+        for (int i = 0; i < count; ++i) {
+            consumerFutures[i] = singleConsumer();
         }
+        return consumerFutures;
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("simple")
-    public void testProducerSimple() {
-        producers[0].send(new ProducerRecord<>(TOPIC, "key", "Hello World!"));
+    public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void> producerFuture = singleProducer();
+        CompletableFuture<Void> consumerFuture = singleConsumer();
+        producerFuture.get();
+        consumerFuture.get();
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("simple")
-    public void testConsumerSimple() {
-        ConsumerRecords<String, String> records = consumers[0].poll(Duration.ofMillis(100));
+    public void testMultipleProducersSingleConsumer() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = multipleProducers(COUNT);
+        CompletableFuture<Void> consumerFuture = singleConsumer();
+
+        CompletableFuture.allOf(producerFutures).get();
+        consumerFuture.get();
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("loadBalancing")
-    public void testProducerLoadBalancing() {
-        int producerId = (int) (Math.random() * producersCount);
-        producers[producerId].send(new ProducerRecord<>(TOPIC, "key", "Hello World!"));
+    public void testSingleProducerMultipleConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void> producerFuture = singleProducer();
+        CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
+
+        producerFuture.get();
+        CompletableFuture.allOf(consumerFutures).get();
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("loadBalancing")
-    public void testConsumerLoadBalancing() {
-        int consumerId = (int) (Math.random() * consumersCount);
-        ConsumerRecords<String, String> records = consumers[consumerId].poll(Duration.ofMillis(100));
+    public void testMultipleProducersMultipleConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = multipleProducers(COUNT);
+        CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
+
+        CompletableFuture.allOf(producerFutures).get();
+        CompletableFuture.allOf(consumerFutures).get();
     }
+
+    @Benchmark
+    public void testTenProducersTenConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = multipleProducers(10);
+        CompletableFuture<Void>[] consumerFutures = multipleConsumers(10);
+
+        CompletableFuture.allOf(producerFutures).get();
+        CompletableFuture.allOf(consumerFutures).get();
+    }
+
 }

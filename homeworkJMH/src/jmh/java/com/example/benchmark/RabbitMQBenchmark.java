@@ -1,92 +1,145 @@
 package com.example.benchmark;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.GetResponse;
+import com.rabbitmq.client.*;
 import org.openjdk.jmh.annotations.*;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
-@OutputTimeUnit(TimeUnit.SECONDS)
-@Fork(2)
-@Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Fork(5)
+@Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
+@Timeout(time = 20, timeUnit = TimeUnit.SECONDS)
+@BenchmarkMode(Mode.Throughput)
 public class RabbitMQBenchmark {
-    private static final String QUEUE_NAME = "test_queue";
-    private ConnectionFactory factory;
-    private Connection[] connections;
-    private Channel[] channels;
 
-    @Param({"1", "3", "10"})
-    private int producersCount;
+    private static final String QUEUE_NAME = "benchmarkQueue";
+    private static final String EXCHANGE_NAME = "benchmarkExchange";
 
-    @Param({"1", "3", "10"})
-    private int consumersCount;
+    // COUNT - количество продюсеров или консюмеров
+    private static final int COUNT = 3;
+    private static final int MESSAGE_COUNT = 1000;
+    private static final String MESSAGE = "Message";
+    private static final byte[] MESSAGE_BYTES = MESSAGE.getBytes();
+
+    private Connection connection;
+    private Channel channel;
 
     @Setup(Level.Trial)
     public void setup() throws IOException, TimeoutException {
-        factory = new ConnectionFactory();
+        ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         factory.setUsername("user");
         factory.setPassword("password");
-
-        connections = new Connection[producersCount + consumersCount];
-        channels = new Channel[producersCount + consumersCount];
-
-        for (int i = 0; i < producersCount + consumersCount; ++i) {
-            connections[i] = factory.newConnection();
-            channels[i] = connections[i].createChannel();
-            channels[i].queueDeclare(QUEUE_NAME, false, false, false, null);
-        }
+        connection = factory.newConnection();
+        channel = connection.createChannel();
+        channel.exchangeDeclare(EXCHANGE_NAME, "direct", true);
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "benchmarkKey");
     }
 
     @TearDown(Level.Trial)
     public void tearDown() throws IOException, TimeoutException {
-        for (int i = 0; i < producersCount + consumersCount; ++i) {
-            channels[i].close();
-            connections[i].close();
+        channel.close();
+        connection.close();
+    }
+
+    private CompletableFuture<Void> SingleProducer() {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                for (int i = 0; i < MESSAGE_COUNT; ++i)
+                    channel.basicPublish(EXCHANGE_NAME, "benchmarkKey", null, MESSAGE_BYTES);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private CompletableFuture<Void> SingleConsumer() {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                channel.basicConsume(QUEUE_NAME, true, (consumerTag, delivery) -> {}, consumerTag -> {});
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private CompletableFuture<Void>[] MultipleProducer(int count) {
+        CompletableFuture<Void>[] producerFutures = new CompletableFuture[count];
+        for (int i = 0; i < count; ++i) {
+            producerFutures[i] = CompletableFuture.runAsync(() -> {
+                try {
+                    for (int j = 0; j < MESSAGE_COUNT; ++j)
+                        channel.basicPublish(EXCHANGE_NAME, "benchmarkKey", null, MESSAGE_BYTES);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
+        return producerFutures;
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("simple")
-    public void testProducerSimple() throws IOException {
-        String message = "Hello World!";
-        channels[0].basicPublish("", QUEUE_NAME, null, message.getBytes());
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("simple")
-    public void testConsumerSimple() throws IOException, InterruptedException {
-        GetResponse response = channels[0].basicGet(QUEUE_NAME, true);
-        if (response == null) {
-            Thread.sleep(1);
+    private CompletableFuture<Void>[] MultipleConsumer(int count) {
+        CompletableFuture<Void>[] consumerFutures = new CompletableFuture[count];
+        for (int i = 0; i < count; ++i) {
+            consumerFutures[i] = CompletableFuture.runAsync(() -> {
+                try {
+                    channel.basicConsume(QUEUE_NAME, true, (consumerTag, delivery) -> {}, consumerTag -> {});
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
+        return consumerFutures;
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("loadBalancing")
-    public void testProducerLoadBalancing() throws IOException {
-        String message = "Hello World!";
-        int producerId = (int) (Math.random() * producersCount);
-        channels[producerId].basicPublish("", QUEUE_NAME, null, message.getBytes());
+    public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void> producerFuture = SingleProducer();
+        CompletableFuture<Void> consumerFuture = SingleConsumer();
+        producerFuture.get();
+        consumerFuture.get();
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @Group("loadBalancing")
-    public void testConsumerLoadBalancing() throws IOException, InterruptedException {
-        int consumerId = (int) (Math.random() * consumersCount);
-        GetResponse response = channels[producersCount + consumerId].basicGet(QUEUE_NAME, true);
-        if (response == null) {
-            Thread.sleep(1);
-        }
+    public void testMultipleProducersSingleConsumer() throws InterruptedException, ExecutionException {
+        CompletableFuture<?>[] producerFutures = MultipleProducer(COUNT);
+        CompletableFuture<?> consumerFuture = SingleConsumer();
+
+        CompletableFuture.allOf(producerFutures).get();
+        consumerFuture.get();
+    }
+
+    @Benchmark
+    public void testSingleProducerMultipleConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void> producerFuture = SingleProducer();
+        CompletableFuture<Void>[] consumerFutures = MultipleConsumer(COUNT);
+
+        producerFuture.get();
+        CompletableFuture.allOf(consumerFutures).get();
+    }
+
+    @Benchmark
+    public void testMultipleProducersMultipleConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = MultipleProducer(COUNT);
+        CompletableFuture<Void>[] consumerFutures = MultipleConsumer(COUNT);
+
+        CompletableFuture.allOf(producerFutures).get();
+        CompletableFuture.allOf(consumerFutures).get();
+    }
+
+    @Benchmark
+    public void testTenProducersTenConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = MultipleProducer(10);
+        CompletableFuture<Void>[] consumerFutures = MultipleConsumer(10);
+
+        CompletableFuture.allOf(producerFutures).get();
+        CompletableFuture.allOf(consumerFutures).get();
     }
 }

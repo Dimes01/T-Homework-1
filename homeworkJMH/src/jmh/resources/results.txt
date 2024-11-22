@@ -1,28 +1,6 @@
-Benchmark                                    (consumersCount)  (producersCount)   Mode  Cnt      Score      Error  Units
-RabbitMQBenchmark.simple                                    1                 1  thrpt   25  27725,116 ± 3608,166  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                 1                 1  thrpt   25     51,066 ±   18,180  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                 1                 1  thrpt   25  27674,051 ± 3597,252  ops/s
-RabbitMQBenchmark.simple                                    1                 3  thrpt   25  24033,956 ± 4195,422  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                 1                 3  thrpt   25     47,379 ±   17,433  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                 1                 3  thrpt   25  23986,577 ± 4185,922  ops/s
-RabbitMQBenchmark.simple                                    1                10  thrpt   25  22774,408 ± 3116,238  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                 1                10  thrpt   25     38,219 ±   16,298  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                 1                10  thrpt   25  22736,189 ± 3104,269  ops/s
-RabbitMQBenchmark.simple                                    3                 1  thrpt   25  17737,860 ± 2637,447  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                 3                 1  thrpt   25     29,841 ±   10,096  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                 3                 1  thrpt   25  17708,019 ± 2636,999  ops/s
-RabbitMQBenchmark.simple                                    3                 3  thrpt   25  21279,933 ± 3261,026  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                 3                 3  thrpt   25     44,658 ±   12,037  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                 3                 3  thrpt   25  21235,275 ± 3254,324  ops/s
-RabbitMQBenchmark.simple                                    3                10  thrpt   25  22810,156 ± 2434,084  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                 3                10  thrpt   25     44,663 ±   15,261  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                 3                10  thrpt   25  22765,493 ± 2428,646  ops/s
-RabbitMQBenchmark.simple                                   10                 1  thrpt   25  21368,102 ± 3623,831  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                10                 1  thrpt   25     49,483 ±   18,261  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                10                 1  thrpt   25  21318,619 ± 3613,870  ops/s
-RabbitMQBenchmark.simple                                   10                 3  thrpt   25  23243,644 ± 4533,234  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                10                 3  thrpt   25     44,511 ±   15,447  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                10                 3  thrpt   25  23199,133 ± 4524,311  ops/s
-RabbitMQBenchmark.simple                                   10                10  thrpt   25  25361,707 ± 3711,388  ops/s
-RabbitMQBenchmark.simple:testConsumerSimple                10                10  thrpt   25     55,482 ±   18,427  ops/s
-RabbitMQBenchmark.simple:testProducerSimple                10                10  thrpt   25  25306,225 ± 3701,211  ops/s
+Benchmark                                                  Mode  Cnt   Score   Error  Units
+RabbitMQBenchmark.testMultipleProducersMultipleConsumers  thrpt   10   3,229 ± 0,577  ops/s
+RabbitMQBenchmark.testMultipleProducersSingleConsumer     thrpt   10   3,045 ± 0,389  ops/s
+RabbitMQBenchmark.testSingleProducerMultipleConsumers     thrpt   10  10,157 ± 0,752  ops/s
+RabbitMQBenchmark.testSingleProducerSingleConsumer        thrpt   10  11,562 ± 1,259  ops/s
+RabbitMQBenchmark.testTenProducersTenConsumers            thrpt   10   0,951 ± 0,052  ops/s
