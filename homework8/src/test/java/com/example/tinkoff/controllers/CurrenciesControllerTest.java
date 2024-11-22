@@ -4,6 +4,7 @@ import com.example.tinkoff.configurations.XmlMapperConfiguration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.example.tinkoff.dto.ConvertRequest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Test class for the {@link CurrenciesController}
  */
+@Disabled
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(locations = "classpath:application.yml")

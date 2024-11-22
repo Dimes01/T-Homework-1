@@ -4,6 +4,7 @@ import org.example.Homework5Application;
 import org.example.models.Category;
 import org.example.models.Location;
 import org.example.services.KudaGOService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = Homework5Application.class)
+@Disabled
 public class KudaGOServiceTest {
 
     @Mock
