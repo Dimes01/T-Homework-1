@@ -122,8 +122,14 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Set lower case owner name
+      run: |
+        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+      env:
+        OWNER: '${{ github.repository_owner }}'
+
     - name: Build Docker image
-      run: docker build -t ghcr.io/${{ github.repository_owner }}/my-app:${{ github.sha }} --force
+      run: docker build -t ghcr.io/${{ OWNER_LC }}/my-app:${{ github.sha }}
 
     - name: Push Docker image
-      run: docker push ghcr.io/${{ github.repository_owner }}/my-app:${{ github.sha }} --force
+      run: docker push ghcr.io/${{ OWNER_LC }}/my-app:${{ github.sha }}
