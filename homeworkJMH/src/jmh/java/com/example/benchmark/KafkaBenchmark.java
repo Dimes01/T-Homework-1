@@ -35,15 +35,41 @@ public class KafkaBenchmark {
     private static final String MESSAGE = "Message";
     private static final ProducerRecord<String, String> PRODUCER_RECORD = new ProducerRecord<>(TOPIC_NAME, MESSAGE);
 
-    private Properties producerProperties;
-    private Properties consumerProperties;
+    private static Properties producerProperties;
+    private static Properties consumerProperties;
+
+    // Метод использовал для баловства с кафкой
+    public static void main(String[] args) {
+        setup();
+
+        try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
+            for (int i = 0; i < MESSAGE_COUNT; ++i) {
+                producer.send(PRODUCER_RECORD);
+            }
+            producer.flush();
+        }
+
+        try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+            consumer.subscribe(Collections.singletonList(TOPIC_NAME));
+            int messagesProcessed = 0;
+            while (messagesProcessed < MESSAGE_COUNT) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+
+                // При текущем коммите вывод в консоли такой: 0 0 0 500 500
+                System.out.printf("%d ", records.count());
+
+                messagesProcessed += records.count();
+            }
+        }
+    }
 
     @Setup(Level.Trial)
-    public void setup() {
+    public static void setup() {
         producerProperties = new Properties();
         producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        producerProperties.put(ProducerConfig.LINGER_MS_CONFIG, 0);
 
         consumerProperties = new Properties();
         consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -91,23 +117,6 @@ public class KafkaBenchmark {
         }
         return consumerFutures;
     }
-
-//    @Benchmark
-//    public void testSingleProducerSingleConsumer_Sync() throws InterruptedException, ExecutionException {
-//        try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
-//            for (int i = 0; i < MESSAGE_COUNT; ++i) {
-//                producer.send(new ProducerRecord<>(TOPIC_NAME, MESSAGE));
-//            }
-//        }
-//        try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
-//            consumer.subscribe(Collections.singletonList(TOPIC_NAME));
-//            int messagesProcessed = 0;
-//            while (messagesProcessed < MESSAGE_COUNT) {
-//                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-//                messagesProcessed += records.count();
-//            }
-//        }
-//    }
 
     @Benchmark
     public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {

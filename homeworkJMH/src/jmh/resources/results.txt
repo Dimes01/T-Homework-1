@@ -1,6 +1,0 @@
-Benchmark                                                  Mode  Cnt   Score   Error  Units
-RabbitMQBenchmark.testMultipleProducersMultipleConsumers  thrpt   10   3,229 ± 0,577  ops/s
-RabbitMQBenchmark.testMultipleProducersSingleConsumer     thrpt   10   3,045 ± 0,389  ops/s
-RabbitMQBenchmark.testSingleProducerMultipleConsumers     thrpt   10  10,157 ± 0,752  ops/s
-RabbitMQBenchmark.testSingleProducerSingleConsumer        thrpt   10  11,562 ± 1,259  ops/s
-RabbitMQBenchmark.testTenProducersTenConsumers            thrpt   10   0,951 ± 0,052  ops/s
