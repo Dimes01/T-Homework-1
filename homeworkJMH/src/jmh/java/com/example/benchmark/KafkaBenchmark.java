@@ -33,6 +33,7 @@ public class KafkaBenchmark {
     private static final int COUNT = 3;
     private static final int MESSAGE_COUNT = 1000;
     private static final String MESSAGE = "Message";
+    private static final ProducerRecord<String, String> PRODUCER_RECORD = new ProducerRecord<>(TOPIC_NAME, MESSAGE);
 
     private Properties producerProperties;
     private Properties consumerProperties;
@@ -56,7 +57,7 @@ public class KafkaBenchmark {
         return CompletableFuture.runAsync(() -> {
             try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
                 for (int i = 0; i < MESSAGE_COUNT; ++i) {
-                    producer.send(new ProducerRecord<>(TOPIC_NAME, MESSAGE));
+                    producer.send(PRODUCER_RECORD);
                 }
             }
         });
@@ -68,7 +69,6 @@ public class KafkaBenchmark {
                 consumer.subscribe(Collections.singletonList(TOPIC_NAME));
                 int messagesProcessed = 0;
                 while (messagesProcessed < MESSAGE_COUNT) {
-//                    System.out.println(messagesProcessed);
                     ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                     messagesProcessed += records.count();
                 }
@@ -92,81 +92,66 @@ public class KafkaBenchmark {
         return consumerFutures;
     }
 
+//    @Benchmark
+//    public void testSingleProducerSingleConsumer_Sync() throws InterruptedException, ExecutionException {
+//        try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
+//            for (int i = 0; i < MESSAGE_COUNT; ++i) {
+//                producer.send(new ProducerRecord<>(TOPIC_NAME, MESSAGE));
+//            }
+//        }
+//        try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
+//            consumer.subscribe(Collections.singletonList(TOPIC_NAME));
+//            int messagesProcessed = 0;
+//            while (messagesProcessed < MESSAGE_COUNT) {
+//                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+//                messagesProcessed += records.count();
+//            }
+//        }
+//    }
+
     @Benchmark
     public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {
-        System.out.println("Method 'testSingleProducerSingleConsumer': start");
-        try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
-            for (int i = 0; i < MESSAGE_COUNT; ++i) {
-                System.out.println(i);
-                producer.send(new ProducerRecord<>(TOPIC_NAME, MESSAGE));
-            }
-        }
-        System.out.println("Method 'testSingleProducerSingleConsumer': messages sent");
-        try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
-            consumer.subscribe(Collections.singletonList(TOPIC_NAME));
-            int messagesProcessed = 0;
-            while (messagesProcessed < MESSAGE_COUNT) {
-                System.out.println(messagesProcessed);
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
-                messagesProcessed += records.count();
-            }
-        }
-        System.out.println("Method 'testSingleProducerSingleConsumer': finish");
+        CompletableFuture<Void> producerFuture = singleProducer();
+        CompletableFuture<Void> consumerFuture = singleConsumer();
+
+        producerFuture.get();
+        consumerFuture.get();
     }
 
-//    @Benchmark
-//    public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {
-//        System.out.println("Method 'testSingleProducerSingleConsumer': start");
-//
-//        CompletableFuture<Void> producerFuture = singleProducer();
-//        System.out.println("Method 'testSingleProducerSingleConsumer': singleProducer");
-//
-//        CompletableFuture<Void> consumerFuture = singleConsumer();
-//        System.out.println("Method 'testSingleProducerSingleConsumer': singleConsumer");
-//
-//        producerFuture.get();
-//        System.out.println("Method 'testSingleProducerSingleConsumer': singleProducer get");
-//
-//        consumerFuture.get();
-//        System.out.println("Method 'testSingleProducerSingleConsumer': singleConsumer get");
-//
-//        System.out.println("Method 'testSingleProducerSingleConsumer': finish");
-//    }
+    @Benchmark
+    public void testMultipleProducersSingleConsumer() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = multipleProducers(COUNT);
+        CompletableFuture<Void> consumerFuture = singleConsumer();
 
-//    @Benchmark
-//    public void testMultipleProducersSingleConsumer() throws InterruptedException, ExecutionException {
-//        CompletableFuture<Void>[] producerFutures = multipleProducers(COUNT);
-//        CompletableFuture<Void> consumerFuture = singleConsumer();
-//
-//        CompletableFuture.allOf(producerFutures).get();
-//        consumerFuture.get();
-//    }
-//
-//    @Benchmark
-//    public void testSingleProducerMultipleConsumers() throws InterruptedException, ExecutionException {
-//        CompletableFuture<Void> producerFuture = singleProducer();
-//        CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
-//
-//        producerFuture.get();
-//        CompletableFuture.allOf(consumerFutures).get();
-//    }
-//
-//    @Benchmark
-//    public void testMultipleProducersMultipleConsumers() throws InterruptedException, ExecutionException {
-//        CompletableFuture<Void>[] producerFutures = multipleProducers(COUNT);
-//        CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
-//
-//        CompletableFuture.allOf(producerFutures).get();
-//        CompletableFuture.allOf(consumerFutures).get();
-//    }
-//
-//    @Benchmark
-//    public void testTenProducersTenConsumers() throws InterruptedException, ExecutionException {
-//        CompletableFuture<Void>[] producerFutures = multipleProducers(10);
-//        CompletableFuture<Void>[] consumerFutures = multipleConsumers(10);
-//
-//        CompletableFuture.allOf(producerFutures).get();
-//        CompletableFuture.allOf(consumerFutures).get();
-//    }
+        CompletableFuture.allOf(producerFutures).get();
+        consumerFuture.get();
+    }
+
+    @Benchmark
+    public void testSingleProducerMultipleConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void> producerFuture = singleProducer();
+        CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
+
+        producerFuture.get();
+        CompletableFuture.allOf(consumerFutures).get();
+    }
+
+    @Benchmark
+    public void testMultipleProducersMultipleConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = multipleProducers(COUNT);
+        CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
+
+        CompletableFuture.allOf(producerFutures).get();
+        CompletableFuture.allOf(consumerFutures).get();
+    }
+
+    @Benchmark
+    public void testTenProducersTenConsumers() throws InterruptedException, ExecutionException {
+        CompletableFuture<Void>[] producerFutures = multipleProducers(10);
+        CompletableFuture<Void>[] consumerFutures = multipleConsumers(10);
+
+        CompletableFuture.allOf(producerFutures).get();
+        CompletableFuture.allOf(consumerFutures).get();
+    }
 
 }

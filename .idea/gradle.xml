@@ -27,6 +27,15 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/testKafka" />
+        <option name="gradleHome" value="" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/testKafka" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>

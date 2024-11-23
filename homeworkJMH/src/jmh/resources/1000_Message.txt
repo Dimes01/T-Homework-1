@@ -1,0 +1,11 @@
+Benchmark                                                  Mode  Cnt   Score    Error  Units
+KafkaBenchmark.testMultipleProducersMultipleConsumers     thrpt   25   0,109 ±  0,001  ops/s
+KafkaBenchmark.testMultipleProducersSingleConsumer        thrpt   25   0,314 ±  0,002  ops/s
+KafkaBenchmark.testSingleProducerMultipleConsumers        thrpt   25   0,109 ±  0,001  ops/s
+KafkaBenchmark.testSingleProducerSingleConsumer           thrpt   25   0,320 ±  0,001  ops/s
+KafkaBenchmark.testTenProducersTenConsumers               thrpt   25   0,033 ±  0,001  ops/s
+RabbitMQBenchmark.testMultipleProducersMultipleConsumers  thrpt   25   3,400 ±  0,227  ops/s
+RabbitMQBenchmark.testMultipleProducersSingleConsumer     thrpt   25   3,154 ±  0,211  ops/s
+RabbitMQBenchmark.testSingleProducerMultipleConsumers     thrpt   25  10,595 ±  0,652  ops/s
+RabbitMQBenchmark.testSingleProducerSingleConsumer        thrpt   25  10,072 ±  1,090  ops/s
+RabbitMQBenchmark.testTenProducersTenConsumers            thrpt   25   0,984 ±  0,047  ops/s
