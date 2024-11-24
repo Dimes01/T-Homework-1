@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @Fork(5)
 @Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
@@ -33,34 +33,19 @@ public class KafkaBenchmark {
     private static final int COUNT = 3;
     private static final int MESSAGE_COUNT = 1000;
     private static final String MESSAGE = "Message";
-    private static final ProducerRecord<String, String> PRODUCER_RECORD = new ProducerRecord<>(TOPIC_NAME, MESSAGE);
 
     private static Properties producerProperties;
     private static Properties consumerProperties;
 
     // Метод использовал для баловства с кафкой
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         setup();
 
-        try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
-            for (int i = 0; i < MESSAGE_COUNT; ++i) {
-                producer.send(PRODUCER_RECORD);
-            }
-            producer.flush();
-        }
+        CompletableFuture<Void> producerFuture = singleProducer(MESSAGE_COUNT);
+        CompletableFuture<Void> consumerFuture = singleConsumer();
 
-        try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
-            consumer.subscribe(Collections.singletonList(TOPIC_NAME));
-            int messagesProcessed = 0;
-            while (messagesProcessed < MESSAGE_COUNT) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
-
-                // При текущем коммите вывод в консоли такой: 0 0 0 500 500
-                System.out.printf("%d ", records.count());
-
-                messagesProcessed += records.count();
-            }
-        }
+        producerFuture.get();
+        consumerFuture.get();
     }
 
     @Setup(Level.Trial)
@@ -79,33 +64,39 @@ public class KafkaBenchmark {
         consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     }
 
-    private CompletableFuture<Void> singleProducer() {
+    private static CompletableFuture<Void> singleProducer(int countMessages) {
         return CompletableFuture.runAsync(() -> {
             try (Producer<String, String> producer = new KafkaProducer<>(producerProperties)) {
-                for (int i = 0; i < MESSAGE_COUNT; ++i) {
-                    producer.send(PRODUCER_RECORD);
+                for (int i = 0; i < countMessages; ++i) {
+                    producer.send(new ProducerRecord<>(TOPIC_NAME, MESSAGE));
                 }
+//                producer.flush();
             }
         });
     }
 
-    private CompletableFuture<Void> singleConsumer() {
+    private static CompletableFuture<Void> singleConsumer() {
         return CompletableFuture.runAsync(() -> {
             try (Consumer<String, String> consumer = new KafkaConsumer<>(consumerProperties)) {
                 consumer.subscribe(Collections.singletonList(TOPIC_NAME));
                 int messagesProcessed = 0;
                 while (messagesProcessed < MESSAGE_COUNT) {
-                    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+                    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(200));
                     messagesProcessed += records.count();
+
+//                    // На данный момент вывод такой
+//                    // 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 500 1000 1500 2000 2500 3000 3500 4000 4500 5000 5500 6000 6500 7000 7500 8000 8500 9000 9500 10000
+//                    System.out.printf("%d ", messagesProcessed);
                 }
             }
         });
     }
 
     private CompletableFuture<Void>[] multipleProducers(int count) {
+        int countMessages = MESSAGE_COUNT / count;
         CompletableFuture<Void>[] producerFutures = new CompletableFuture[count];
         for (int i = 0; i < count; ++i) {
-            producerFutures[i] = singleProducer();
+            producerFutures[i] = singleProducer(countMessages);
         }
         return producerFutures;
     }
@@ -120,7 +111,7 @@ public class KafkaBenchmark {
 
     @Benchmark
     public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {
-        CompletableFuture<Void> producerFuture = singleProducer();
+        CompletableFuture<Void> producerFuture = singleProducer(MESSAGE_COUNT);
         CompletableFuture<Void> consumerFuture = singleConsumer();
 
         producerFuture.get();
@@ -138,7 +129,7 @@ public class KafkaBenchmark {
 
     @Benchmark
     public void testSingleProducerMultipleConsumers() throws InterruptedException, ExecutionException {
-        CompletableFuture<Void> producerFuture = singleProducer();
+        CompletableFuture<Void> producerFuture = singleProducer(MESSAGE_COUNT);
         CompletableFuture<Void>[] consumerFutures = multipleConsumers(COUNT);
 
         producerFuture.get();
@@ -162,5 +153,4 @@ public class KafkaBenchmark {
         CompletableFuture.allOf(producerFutures).get();
         CompletableFuture.allOf(consumerFutures).get();
     }
-
 }

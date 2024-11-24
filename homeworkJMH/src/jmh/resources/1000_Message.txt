@@ -1,6 +1,5 @@
 Message = "Message"
 Count = 1000
-Multiple = 3
 
 Benchmark                                                  Mode  Cnt   Score    Error  Units
 KafkaBenchmark.testMultipleProducersMultipleConsumers     thrpt   25   0,109 ±  0,001  ops/s

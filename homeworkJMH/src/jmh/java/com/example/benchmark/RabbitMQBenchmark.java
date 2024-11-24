@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @Fork(5)
 @Warmup(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 2, timeUnit = TimeUnit.SECONDS)
@@ -49,10 +49,10 @@ public class RabbitMQBenchmark {
         connection.close();
     }
 
-    private CompletableFuture<Void> SingleProducer() {
+    private CompletableFuture<Void> SingleProducer(int countMessages) {
         return CompletableFuture.runAsync(() -> {
             try {
-                for (int i = 0; i < MESSAGE_COUNT; ++i)
+                for (int i = 0; i < countMessages; ++i)
                     channel.basicPublish(EXCHANGE_NAME, "benchmarkKey", null, MESSAGE_BYTES);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -70,17 +70,11 @@ public class RabbitMQBenchmark {
         });
     }
 
-    private CompletableFuture<Void>[] MultipleProducer(int count) {
-        CompletableFuture<Void>[] producerFutures = new CompletableFuture[count];
-        for (int i = 0; i < count; ++i) {
-            producerFutures[i] = CompletableFuture.runAsync(() -> {
-                try {
-                    for (int j = 0; j < MESSAGE_COUNT; ++j)
-                        channel.basicPublish(EXCHANGE_NAME, "benchmarkKey", null, MESSAGE_BYTES);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+    private CompletableFuture<Void>[] MultipleProducer(int countProducer) {
+        int countMessages = MESSAGE_COUNT / countProducer;
+        CompletableFuture<Void>[] producerFutures = new CompletableFuture[countProducer];
+        for (int i = 0; i < countProducer; ++i) {
+            producerFutures[i] = SingleProducer(countMessages);
         }
         return producerFutures;
     }
@@ -88,20 +82,14 @@ public class RabbitMQBenchmark {
     private CompletableFuture<Void>[] MultipleConsumer(int count) {
         CompletableFuture<Void>[] consumerFutures = new CompletableFuture[count];
         for (int i = 0; i < count; ++i) {
-            consumerFutures[i] = CompletableFuture.runAsync(() -> {
-                try {
-                    channel.basicConsume(QUEUE_NAME, true, (consumerTag, delivery) -> {}, consumerTag -> {});
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            consumerFutures[i] = SingleConsumer();
         }
         return consumerFutures;
     }
 
     @Benchmark
     public void testSingleProducerSingleConsumer() throws InterruptedException, ExecutionException {
-        CompletableFuture<Void> producerFuture = SingleProducer();
+        CompletableFuture<Void> producerFuture = SingleProducer(MESSAGE_COUNT);
         CompletableFuture<Void> consumerFuture = SingleConsumer();
         producerFuture.get();
         consumerFuture.get();
@@ -118,7 +106,7 @@ public class RabbitMQBenchmark {
 
     @Benchmark
     public void testSingleProducerMultipleConsumers() throws InterruptedException, ExecutionException {
-        CompletableFuture<Void> producerFuture = SingleProducer();
+        CompletableFuture<Void> producerFuture = SingleProducer(MESSAGE_COUNT);
         CompletableFuture<Void>[] consumerFutures = MultipleConsumer(COUNT);
 
         producerFuture.get();
