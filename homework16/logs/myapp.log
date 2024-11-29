@@ -1,0 +1,12 @@
+21:39:47.251 [main] INFO  org.example.Main - Some info message
+21:39:47.254 [main] WARN  org.example.Main - Some warn message
+21:39:47.254 [main] ERROR org.example.Main - Some error message
+22:02:25.942 [main] INFO  org.example.Main - Some info message
+22:02:25.947 [main] WARN  org.example.Main - Some warn message
+22:02:25.947 [main] ERROR org.example.Main - Some error message
+22:32:12.034 [main] INFO  org.example.Main - Some info message
+22:32:12.039 [main] WARN  org.example.Main - Some warn message
+22:32:12.040 [main] ERROR org.example.Main - Some error message
+22:43:20.817 [main] INFO  org.example.Main - Some info message
+22:43:20.822 [main] WARN  org.example.Main - Some warn message
+22:43:20.822 [main] ERROR org.example.Main - Some error message

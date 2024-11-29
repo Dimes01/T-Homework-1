@@ -6,3 +6,5 @@ filebeat.inputs:
 
 output.logstash:
   hosts: ["logstash:5000"]
+  codec.json:
+    charset: utf-8
