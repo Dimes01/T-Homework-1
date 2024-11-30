@@ -9,21 +9,21 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Main {
     public static void main(String[] args) {
-        Task1();
         Task2(args);
+        Task1();
 //        triggerOutOfMemoryError();
 //        triggerStackOverflowError();
     }
 
     private static void Task1() {
-        MDC.put("userId", "12345");
-        MDC.put("transactionId", "67890");
+//        MDC.put("userId", "12345");
+//        MDC.put("transactionId", "67890");
 
         log.info("Some info message 1");
         log.info("Some info message 2");
         log.info("Some info message 3");
 
-        MDC.clear();
+//        MDC.clear();
     }
 
     private static void Task2(String[] args) {

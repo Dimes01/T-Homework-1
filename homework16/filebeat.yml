@@ -3,6 +3,7 @@ filebeat.inputs:
     enabled: true
     paths:
       - /logs/*.log
+      - /logs/*.json
 
 output.logstash:
   hosts: ["logstash:5000"]
