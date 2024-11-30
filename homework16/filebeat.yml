@@ -1,0 +1,11 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /logs/*.log
+      - /logs/*.json
+
+output.logstash:
+  hosts: ["logstash:5000"]
+  codec.json:
+    charset: utf-8

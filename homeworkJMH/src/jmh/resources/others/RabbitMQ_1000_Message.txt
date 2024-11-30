@@ -1,0 +1,9 @@
+Message = "Message"
+Count = 1000
+
+Benchmark                                                  Mode  Cnt   Score   Error  Units
+RabbitMQBenchmark.testMultipleProducersMultipleConsumers  thrpt   25  10,164 ± 0,685  ops/s
+RabbitMQBenchmark.testMultipleProducersSingleConsumer     thrpt   25   9,939 ± 0,759  ops/s
+RabbitMQBenchmark.testSingleProducerMultipleConsumers     thrpt   25  10,958 ± 0,742  ops/s
+RabbitMQBenchmark.testSingleProducerSingleConsumer        thrpt   25  11,068 ± 0,784  ops/s
+RabbitMQBenchmark.testTenProducersTenConsumers            thrpt   25   8,543 ± 0,501  ops/s
