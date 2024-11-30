@@ -1,11 +1,11 @@
 <configuration>
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/myApp.log</file>
-        <encoder>
-            <charset>UTF-8</charset>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} [%file:%line] - %msg%n</pattern>
-        </encoder>
-    </appender>
+<!--    <appender name="ECS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <encoder class="co.elastic.logging.logback.EcsEncoder">-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>-->
+<!--            <serviceName>${SERVICE_NAME:-spring-boot-application}</serviceName>-->
+<!--        </encoder>-->
+<!--        <file>/logs/myLog.json</file>-->
+<!--    </appender>-->
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -13,17 +13,17 @@
         </encoder>
     </appender>
 
-<!--    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
-<!--        <destination>localhost:5000</destination>-->
-<!--        <encoder class="net.logstash.logback.encoder.LogstashEncoder">-->
-<!--            <charset>UTF-8</charset>-->
-<!--            <customFields>{"appname":"your-app-name"}</customFields>-->
-<!--        </encoder>-->
-<!--    </appender>-->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5000</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <charset>UTF-8</charset>
+            <customFields>{"appname":"your-app-name"}</customFields>
+        </encoder>
+    </appender>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-<!--        <appender-ref ref="LOGSTASH"/>-->
+<!--        <appender-ref ref="ECS_FILE"/>-->
+        <appender-ref ref="LOGSTASH"/>
     </root>
 </configuration>

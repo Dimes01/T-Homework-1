@@ -16,14 +16,15 @@ public class Main {
     }
 
     private static void Task1() {
-//        MDC.put("userId", "12345");
-//        MDC.put("transactionId", "67890");
+
+        MDC.put("userId", "12345");
+        MDC.put("transactionId", "67890");
 
         log.info("Some info message 1");
         log.info("Some info message 2");
         log.info("Some info message 3");
 
-//        MDC.clear();
+        MDC.clear();
     }
 
     private static void Task2(String[] args) {
