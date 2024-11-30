@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.example.dto.RandomNumberDTO;
+import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +27,10 @@ public class MetricsController {
     @PostMapping("/random")
     public ResponseEntity<String> randomNumberCounter(@RequestBody RandomNumberDTO dto) {
         customMetricCounter.increment();
+
+        MDC.put("min_number", String.valueOf(dto.getMin()));
+        MDC.put("max_number", String.valueOf(dto.getMax()));
+
         var number = generateRandomNumber(dto.getMin(), dto.getMax());
         String result;
         if (Arrays.stream(dto.getLoseNumbers()).anyMatch((x) -> x == number)) {
@@ -36,6 +41,7 @@ public class MetricsController {
             log.info("WIN");
         }
         log.info(result);
+        MDC.clear();
         return ResponseEntity.ok(result);
     }
 
